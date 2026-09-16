@@ -1,7 +1,7 @@
 import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
-export async function middleware(request: NextRequest) {
+export async function proxy(request: NextRequest) {
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -32,7 +32,7 @@ export async function middleware(request: NextRequest) {
 
   // Redirect unauthenticated users away from protected routes
   if (!user) {
-    if (pathname.startsWith('/admin') || pathname.startsWith('/attendance')) {
+    if (pathname.startsWith('/admin') || pathname.startsWith('/attendance') || pathname.startsWith('/present')) {
       const url = request.nextUrl.clone();
       url.pathname = '/login';
       return NextResponse.redirect(url);
@@ -40,9 +40,8 @@ export async function middleware(request: NextRequest) {
     return supabaseResponse;
   }
 
-  // Redirect authenticated users away from login
+  // Redirect authenticated users away from login/root
   if (pathname === '/login' || pathname === '/') {
-    // Check if admin
     const { data: adminUser } = await supabase
       .from('admin_users')
       .select('id')
@@ -54,8 +53,8 @@ export async function middleware(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Protect /admin routes — must be admin
-  if (pathname.startsWith('/admin')) {
+  // Protect /admin and /present routes — must be admin
+  if (pathname.startsWith('/admin') || pathname.startsWith('/present')) {
     const { data: adminUser } = await supabase
       .from('admin_users')
       .select('id')
@@ -78,7 +77,6 @@ export async function middleware(request: NextRequest) {
       .maybeSingle();
 
     if (!student) {
-      // Could be an admin visiting — redirect to admin
       const { data: adminUser } = await supabase
         .from('admin_users')
         .select('id')

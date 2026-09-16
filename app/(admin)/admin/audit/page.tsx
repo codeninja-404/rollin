@@ -1,0 +1,125 @@
+'use client';
+
+import React, { useEffect, useState } from 'react';
+import { Card, Table, Typography, Tag, Tooltip } from 'antd';
+import type { ColumnsType } from 'antd/es/table';
+import type { AuditLog } from '@/lib/types';
+import dayjs from 'dayjs';
+import AntdConfigProvider from '@/components/AntdConfigProvider';
+
+const { Title, Text } = Typography;
+
+const actionColors: Record<string, string> = {
+  'admin.login': 'blue',
+  'student.import': 'cyan',
+  'class.create': 'purple',
+  'student.assign': 'geekblue',
+  'student.unassign': 'orange',
+  'attendance.open': 'green',
+  'attendance.close': 'red',
+  'attendance.submit': 'lime',
+  'network.create': 'volcano',
+  'network.delete': 'magenta',
+};
+
+export default function AuditPage() {
+  const [logs, setLogs] = useState<AuditLog[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function load() {
+      setLoading(true);
+      try {
+        const res = await fetch('/api/admin/audit');
+        const data = await res.json();
+        setLogs(data.logs ?? []);
+      } finally {
+        setLoading(false);
+      }
+    }
+    load();
+  }, []);
+
+  const columns: ColumnsType<AuditLog> = [
+    {
+      title: 'Action',
+      dataIndex: 'action',
+      render: (action: string) => (
+        <Tag
+          color={actionColors[action] ?? 'default'}
+          style={{ borderRadius: 6, fontFamily: 'monospace', fontSize: 11 }}
+        >
+          {action}
+        </Tag>
+      ),
+    },
+    {
+      title: 'Entity',
+      key: 'entity',
+      render: (_, log) => (
+        log.entity ? (
+          <Text type="secondary" style={{ fontSize: 12 }}>
+            {log.entity}
+            {log.entity_id && ` · ${log.entity_id.slice(0, 8)}…`}
+          </Text>
+        ) : <Text type="secondary">—</Text>
+      ),
+    },
+    {
+      title: 'IP',
+      dataIndex: 'ip_address',
+      render: (ip: string) => (
+        <Text type="secondary" style={{ fontSize: 12, fontFamily: 'monospace' }}>{ip ?? '—'}</Text>
+      ),
+    },
+    {
+      title: 'Metadata',
+      dataIndex: 'metadata',
+      render: (meta: any) => meta ? (
+        <Tooltip title={<pre style={{ fontSize: 11 }}>{JSON.stringify(meta, null, 2)}</pre>}>
+          <Text type="secondary" style={{ fontSize: 11, cursor: 'pointer', textDecoration: 'underline dotted' }}>
+            view
+          </Text>
+        </Tooltip>
+      ) : <Text type="secondary">—</Text>,
+    },
+    {
+      title: 'Time',
+      dataIndex: 'created_at',
+      render: (v: string) => (
+        <Text type="secondary" style={{ fontSize: 12 }}>
+          {dayjs(v).format('MMM D, YYYY h:mm:ss A')}
+        </Text>
+      ),
+    },
+  ];
+
+  return (
+    <AntdConfigProvider>
+      <div>
+        <div style={{ marginBottom: 24 }}>
+          <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>Audit Logs</Title>
+          <Text type="secondary">System activity trail</Text>
+        </div>
+
+        <Card
+          style={{
+            background: 'rgba(255,255,255,0.04)',
+            border: '1px solid rgba(255,255,255,0.08)',
+            borderRadius: 16,
+          }}
+          styles={{ body: { padding: 0 } }}
+        >
+          <Table
+            dataSource={logs}
+            columns={columns}
+            rowKey="id"
+            loading={loading}
+            pagination={{ pageSize: 20, showSizeChanger: false }}
+            locale={{ emptyText: 'No audit logs yet' }}
+          />
+        </Card>
+      </div>
+    </AntdConfigProvider>
+  );
+}

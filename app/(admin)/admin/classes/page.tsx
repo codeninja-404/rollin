@@ -188,7 +188,7 @@ export default function ClassesPage() {
           open={modalOpen}
           onCancel={() => { setModalOpen(false); form.resetFields(); }}
           footer={null}
-          styles={{ content: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
+          styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
         >
           <Form form={form} layout="vertical" onFinish={handleCreate} style={{ marginTop: 16 }}>
             <Form.Item name="course_code" label={<Text style={{ color: 'rgba(255,255,255,0.7)' }}>Course Code</Text>} rules={[{ required: true }]}>

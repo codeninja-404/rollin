@@ -3,11 +3,11 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Card, Typography, Button, Progress, Avatar, Tag, List,
-  Modal, message, Spin, Empty, Badge, Statistic, Row, Col,
+  Modal, message, Spin, Empty, Badge, Statistic, Row, Col, Space,
 } from 'antd';
 import {
   ArrowLeftOutlined, CloseCircleOutlined, ReloadOutlined,
-  CheckCircleOutlined, ClockCircleOutlined,
+  CheckCircleOutlined, ClockCircleOutlined, FundProjectionScreenOutlined,
 } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import type { AttendanceSession, Attendance } from '@/lib/types';
@@ -28,61 +28,77 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
   const [closing, setClosing] = useState(false);
   const router = useRouter();
   const supabase = createClient();
-  const otpIntervalRef = useRef<NodeJS.Timeout | null>(null);
-  const countdownRef = useRef<NodeJS.Timeout | null>(null);
+  const lastWindowRef = useRef<number>(-1);
+  const tickerRef = useRef<NodeJS.Timeout | null>(null);
 
   // Load session data
   const loadSession = useCallback(async (id: string) => {
-    const res = await fetch(`/api/admin/sessions/${id}`);
-    const data = await res.json();
-    setSession(data.session);
-    setAttendance(data.attendance ?? []);
-    setTotalStudents(data.totalStudents ?? 0);
+    try {
+      const res = await fetch(`/api/admin/sessions/${id}`);
+      const data = await res.json();
+      setSession(data.session);
+      setAttendance(data.attendance ?? []);
+      setTotalStudents(data.totalStudents ?? 0);
+    } catch (e) {
+      console.error('Failed to load session', e);
+    }
   }, []);
 
   // Fetch current OTP from server
   const fetchOtp = useCallback(async (id: string) => {
-    const res = await fetch(`/api/admin/sessions/${id}/otp`);
-    const data = await res.json();
-    if (res.ok) {
-      setOtp(data.otp);
-      setSecondsLeft(data.seconds_remaining);
+    try {
+      const res = await fetch(`/api/admin/sessions/${id}/otp?t=${Date.now()}`, {
+        cache: 'no-store',
+        headers: { 'Cache-Control': 'no-cache' },
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setOtp(data.otp);
+      }
+    } catch (err) {
+      console.error('Error fetching OTP:', err);
     }
   }, []);
 
-  // Countdown timer
-  const startCountdown = useCallback((initialSeconds: number, id: string) => {
-    if (countdownRef.current) clearInterval(countdownRef.current);
+  // Continuous clock-synced OTP loop
+  useEffect(() => {
+    if (!sessionId || session?.status === 'closed') return;
 
-    let secs = initialSeconds;
-    countdownRef.current = setInterval(() => {
-      secs -= 1;
-      if (secs <= 0) {
-        clearInterval(countdownRef.current!);
-        fetchOtp(id).then(() => {});
-      } else {
-        setSecondsLeft(secs);
+    const tick = () => {
+      const nowSec = Math.floor(Date.now() / 1000);
+      const currentWindow = Math.floor(nowSec / 5);
+      const remaining = 5 - (nowSec % 5);
+
+      setSecondsLeft(remaining);
+
+      // Trigger fetch as soon as window flips
+      if (currentWindow !== lastWindowRef.current) {
+        lastWindowRef.current = currentWindow;
+        fetchOtp(sessionId);
       }
-    }, 1000);
-  }, [fetchOtp]);
+    };
+
+    tick();
+    tickerRef.current = setInterval(tick, 250);
+
+    return () => {
+      if (tickerRef.current) clearInterval(tickerRef.current);
+    };
+  }, [sessionId, session?.status, fetchOtp]);
 
   useEffect(() => {
     params.then(async ({ id }) => {
       setSessionId(id);
       setLoading(true);
       await loadSession(id);
-      const res = await fetch(`/api/admin/sessions/${id}/otp`);
-      const data = await res.json();
-      if (res.ok) {
-        setOtp(data.otp);
-        setSecondsLeft(data.seconds_remaining);
-        startCountdown(data.seconds_remaining, id);
-      }
+      await fetchOtp(id);
       setLoading(false);
+
+      const uid = Math.random().toString(36).substring(2, 9);
 
       // Supabase Realtime — listen for new attendance records
       const channel = supabase
-        .channel(`session-${id}`)
+        .channel(`session-${id}-${uid}`)
         .on('postgres_changes', {
           event: 'INSERT',
           schema: 'public',
@@ -95,18 +111,7 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
 
       return () => { supabase.removeChannel(channel); };
     });
-
-    return () => {
-      if (countdownRef.current) clearInterval(countdownRef.current);
-    };
-  }, [params, loadSession, fetchOtp, startCountdown, supabase]);
-
-  // Restart countdown when secondsLeft hits 0 and OTP is refreshed
-  useEffect(() => {
-    if (secondsLeft > 0 && sessionId) {
-      // already handled in startCountdown
-    }
-  }, [otp, secondsLeft, sessionId]);
+  }, [params, loadSession, fetchOtp, supabase]);
 
   const handleClose = () => {
     Modal.confirm({
@@ -134,7 +139,7 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
           });
           if (res.ok) {
             message.success('Attendance session closed');
-            if (countdownRef.current) clearInterval(countdownRef.current);
+            if (tickerRef.current) clearInterval(tickerRef.current);
             router.push('/admin/attendance');
           } else {
             const data = await res.json();
@@ -159,14 +164,34 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
   return (
     <AntdConfigProvider>
       <div>
-        <Button
-          type="text"
-          icon={<ArrowLeftOutlined />}
-          onClick={() => router.push('/admin/attendance')}
-          style={{ color: 'rgba(255,255,255,0.6)', marginBottom: 20 }}
-        >
-          Back
-        </Button>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
+          <Button
+            type="text"
+            icon={<ArrowLeftOutlined />}
+            onClick={() => router.push('/admin/attendance')}
+            style={{ color: 'rgba(255,255,255,0.6)' }}
+          >
+            Back
+          </Button>
+
+          {!isClosed && (
+            <Button
+              type="primary"
+              icon={<FundProjectionScreenOutlined />}
+              onClick={() => window.open(`/present/${sessionId}`, '_blank')}
+              style={{
+                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+                border: 'none',
+                borderRadius: 10,
+                height: 38,
+                fontWeight: 600,
+                boxShadow: '0 4px 14px rgba(99,102,241,0.3)',
+              }}
+            >
+              Share Screen (Projector View)
+            </Button>
+          )}
+        </div>
 
         <Row gutter={[24, 24]}>
           {/* Left — OTP Display */}
@@ -179,7 +204,7 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                 textAlign: 'center',
                 height: '100%',
               }}
-              styles={{ body: { padding: 40 } }}
+              styles={{ body: { padding: '32px 24px' } }}
             >
               {/* Class info */}
               <div style={{ marginBottom: 32 }}>
@@ -202,10 +227,10 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
               {!isClosed && (
                 <>
                   <div style={{
-                    fontSize: 72,
+                    fontSize: 'clamp(44px, 8vw, 72px)',
                     fontWeight: 800,
                     color: '#fff',
-                    letterSpacing: 12,
+                    letterSpacing: 'clamp(6px, 1.5vw, 12px)',
                     fontFamily: 'monospace',
                     lineHeight: 1,
                     marginBottom: 16,
@@ -227,7 +252,7 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                     percent={(secondsLeft / 5) * 100}
                     showInfo={false}
                     strokeColor={secondsLeft <= 2 ? '#ef4444' : '#6366f1'}
-                    trailColor="rgba(255,255,255,0.1)"
+                    railColor="rgba(255,255,255,0.1)"
                     style={{ marginBottom: 32 }}
                   />
                 </>
@@ -241,19 +266,38 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                 </Text>
               </div>
 
-              {/* Close button */}
+              {/* Actions */}
               {!isClosed && (
-                <Button
-                  danger
-                  type="primary"
-                  icon={<CloseCircleOutlined />}
-                  size="large"
-                  loading={closing}
-                  onClick={handleClose}
-                  style={{ borderRadius: 12, height: 48, width: '100%', fontWeight: 600 }}
-                >
-                  Close Attendance
-                </Button>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, width: '100%' }}>
+                  <Button
+                    icon={<FundProjectionScreenOutlined />}
+                    size="large"
+                    onClick={() => window.open(`/present/${sessionId}`, '_blank')}
+                    style={{
+                      borderRadius: 12,
+                      height: 46,
+                      width: '100%',
+                      fontWeight: 600,
+                      background: 'rgba(255,255,255,0.06)',
+                      borderColor: 'rgba(255,255,255,0.12)',
+                      color: '#fff',
+                    }}
+                  >
+                    Open in New Tab (No Sidebar)
+                  </Button>
+
+                  <Button
+                    danger
+                    type="primary"
+                    icon={<CloseCircleOutlined />}
+                    size="large"
+                    loading={closing}
+                    onClick={handleClose}
+                    style={{ borderRadius: 12, height: 48, width: '100%', fontWeight: 600 }}
+                  >
+                    Close Attendance
+                  </Button>
+                </div>
               )}
             </Card>
           </Col>
@@ -313,7 +357,7 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                     percent={progressPercent}
                     size={64}
                     strokeColor="#6366f1"
-                    trailColor="rgba(255,255,255,0.1)"
+                    railColor="rgba(255,255,255,0.1)"
                     format={(p) => <Text style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{p}%</Text>}
                   />
                 </div>

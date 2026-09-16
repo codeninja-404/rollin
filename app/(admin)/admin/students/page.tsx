@@ -4,12 +4,13 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Card, Table, Button, Input, Tag, Space, Typography, Modal,
   Upload, Alert, Progress, message, Tooltip, Avatar, Badge,
-  Dropdown, Switch,
+  Dropdown, Switch, Form, Select, InputNumber, Row, Col,
 } from 'antd';
 import {
   TeamOutlined, SearchOutlined, UploadOutlined, UserAddOutlined,
   MoreOutlined, EyeOutlined, DeleteOutlined, ImportOutlined,
   CheckCircleOutlined, WarningOutlined, CloseCircleOutlined,
+  DownloadOutlined, PlusOutlined,
 } from '@ant-design/icons';
 import Papa from 'papaparse';
 import type { ColumnsType } from 'antd/es/table';
@@ -33,6 +34,12 @@ export default function StudentsPage() {
   const [csvPreview, setCsvPreview] = useState<CsvPreviewRow[]>([]);
   const [importing, setImporting] = useState(false);
   const [importDone, setImportDone] = useState(false);
+
+  // Manual Add Student modal state
+  const [addOpen, setAddOpen] = useState(false);
+  const [addLoading, setAddLoading] = useState(false);
+  const [addForm] = Form.useForm();
+
   const router = useRouter();
 
   const load = useCallback(async () => {
@@ -115,6 +122,65 @@ export default function StudentsPage() {
     setImportDone(false);
   };
 
+  const downloadSampleCsv = () => {
+    const csvContent = `student_code,name,email,department,semester,section
+STU001,Aryan Khan,aryan.khan@university.edu,CSE,3,A
+STU002,Priya Sharma,priya.sharma@university.edu,CSE,3,A
+STU003,Rahul Mehta,rahul.mehta@university.edu,CSE,3,A
+STU004,Sneha Patel,sneha.patel@university.edu,CSE,3,A
+STU005,Aditya Roy,aditya.roy@university.edu,CSE,3,B
+STU006,Meera Nair,meera.nair@university.edu,CSE,3,B
+STU007,Karan Joshi,karan.joshi@university.edu,CSE,3,B
+STU008,Ananya Singh,ananya.singh@university.edu,CSE,3,B
+STU009,Vikram Das,vikram.das@university.edu,EEE,3,A
+STU010,Pooja Reddy,pooja.reddy@university.edu,EEE,3,A
+STU011,Rohan Gupta,rohan.gupta@university.edu,EEE,3,A
+STU012,Divya Kumar,divya.kumar@university.edu,EEE,3,A
+STU013,Saurabh Yadav,saurabh.yadav@university.edu,ME,5,A
+STU014,Nisha Bose,nisha.bose@university.edu,ME,5,A
+STU015,Tarun Pillai,tarun.pillai@university.edu,ME,5,B
+STU016,Kavya Iyer,kavya.iyer@university.edu,BBA,1,A
+STU017,Harish Verma,harish.verma@university.edu,BBA,1,A
+STU018,Leena Thomas,leena.thomas@university.edu,BBA,1,B
+STU019,Nikhil Sharma,nikhil.sharma@university.edu,CSE,5,A
+STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', 'dummy_students.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    URL.revokeObjectURL(url);
+    message.success('Dummy students CSV downloaded!');
+  };
+
+  const handleManualAdd = async (values: any) => {
+    setAddLoading(true);
+    try {
+      const res = await fetch('/api/admin/students', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(values),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        message.success(`Student ${data.student.name} added successfully!`);
+        addForm.resetFields();
+        setAddOpen(false);
+        load();
+      } else {
+        message.error(data.error || 'Failed to add student');
+      }
+    } catch {
+      message.error('An error occurred while adding student');
+    } finally {
+      setAddLoading(false);
+    }
+  };
+
   const validCount = csvPreview.filter((r) => r._status === 'valid').length;
   const dupCount = csvPreview.filter((r) => r._status === 'duplicate').length;
   const invalidCount = csvPreview.filter((r) => r._status === 'invalid').length;
@@ -142,10 +208,10 @@ export default function StudentsPage() {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
-      render: (email: string) => <Text type="secondary">{email}</Text>,
+      render: (email: string) => <Text style={{ color: 'rgba(255,255,255,0.7)' }}>{email}</Text>,
     },
     {
-      title: 'Dept / Semester',
+      title: 'Department / Class Info',
       key: 'dept',
       render: (_, s) => (
         <Text type="secondary">
@@ -214,26 +280,63 @@ export default function StudentsPage() {
   return (
     <AntdConfigProvider>
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
           <div>
             <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>Students</Title>
             <Text type="secondary">{students.length} students total</Text>
           </div>
-          <Upload accept=".csv" beforeUpload={handleCsvFile} showUploadList={false}>
+
+          <Space size={12}>
+            {/* Download Sample CSV */}
             <Button
-              type="primary"
-              icon={<ImportOutlined />}
+              icon={<DownloadOutlined />}
+              onClick={downloadSampleCsv}
               style={{
-                background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-                border: 'none',
+                background: 'rgba(255,255,255,0.06)',
+                borderColor: 'rgba(255,255,255,0.12)',
+                color: '#fff',
+                borderRadius: 10,
+                height: 40,
+                fontWeight: 500,
+              }}
+            >
+              Dummy CSV
+            </Button>
+
+            {/* Manual Add Student */}
+            <Button
+              icon={<PlusOutlined />}
+              onClick={() => setAddOpen(true)}
+              style={{
+                background: 'rgba(255,255,255,0.08)',
+                borderColor: 'rgba(255,255,255,0.15)',
+                color: '#fff',
                 borderRadius: 10,
                 height: 40,
                 fontWeight: 600,
               }}
             >
-              Import CSV
+              Add Student
             </Button>
-          </Upload>
+
+            {/* Import CSV */}
+            <Upload accept=".csv" beforeUpload={handleCsvFile} showUploadList={false}>
+              <Button
+                type="primary"
+                icon={<ImportOutlined />}
+                style={{
+                  background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                  border: 'none',
+                  borderRadius: 10,
+                  height: 40,
+                  fontWeight: 600,
+                  boxShadow: '0 4px 14px rgba(99,102,241,0.3)',
+                }}
+              >
+                Import CSV
+              </Button>
+            </Upload>
+          </Space>
         </div>
 
         {/* Search */}
@@ -267,9 +370,108 @@ export default function StudentsPage() {
             rowKey="id"
             loading={loading}
             pagination={{ pageSize: 20, showSizeChanger: false }}
-            locale={{ emptyText: 'No students yet. Import a CSV to get started.' }}
+            locale={{ emptyText: 'No students yet. Import a CSV or manually add one.' }}
           />
         </Card>
+
+        {/* Manual Add Student Modal */}
+        <Modal
+          title={
+            <Text strong style={{ color: '#fff', fontSize: 16 }}>
+              Add New Student
+            </Text>
+          }
+          open={addOpen}
+          onCancel={() => {
+            setAddOpen(false);
+            addForm.resetFields();
+          }}
+          footer={null}
+          width={540}
+          styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
+        >
+          <Form
+            form={addForm}
+            layout="vertical"
+            onFinish={handleManualAdd}
+            initialValues={{ department: 'CSE', semester: 1, section: 'A' }}
+            style={{ marginTop: 16 }}
+          >
+            <Row gutter={16}>
+              <Col span={12}>
+                <Form.Item
+                  label={<span style={{ color: '#fff' }}>Student Code / ID</span>}
+                  name="student_code"
+                  rules={[{ required: true, message: 'Student code is required' }]}
+                >
+                  <Input placeholder="e.g. STU001" style={{ borderRadius: 8 }} />
+                </Form.Item>
+              </Col>
+              <Col span={12}>
+                <Form.Item
+                  label={<span style={{ color: '#fff' }}>Full Name</span>}
+                  name="name"
+                  rules={[{ required: true, message: 'Student name is required' }]}
+                >
+                  <Input placeholder="e.g. Aryan Khan" style={{ borderRadius: 8 }} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item
+              label={<span style={{ color: '#fff' }}>Email Address</span>}
+              name="email"
+              rules={[
+                { required: true, message: 'Email is required' },
+                { type: 'email', message: 'Enter a valid email' },
+              ]}
+            >
+              <Input placeholder="e.g. aryan@university.edu" style={{ borderRadius: 8 }} />
+            </Form.Item>
+
+            <Row gutter={16}>
+              <Col span={8}>
+                <Form.Item label={<span style={{ color: '#fff' }}>Department</span>} name="department">
+                  <Input placeholder="e.g. CSE" style={{ borderRadius: 8 }} />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item label={<span style={{ color: '#fff' }}>Semester</span>} name="semester">
+                  <InputNumber min={1} max={12} style={{ width: '100%', borderRadius: 8 }} />
+                </Form.Item>
+              </Col>
+              <Col span={8}>
+                <Form.Item label={<span style={{ color: '#fff' }}>Section</span>} name="section">
+                  <Input placeholder="e.g. A" style={{ borderRadius: 8 }} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 24 }}>
+              <Button
+                onClick={() => {
+                  setAddOpen(false);
+                  addForm.resetFields();
+                }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={addLoading}
+                style={{
+                  background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                  border: 'none',
+                  borderRadius: 8,
+                  fontWeight: 600,
+                }}
+              >
+                Create Student
+              </Button>
+            </div>
+          </Form>
+        </Modal>
 
         {/* CSV Import Modal */}
         <Modal
@@ -305,7 +507,7 @@ export default function StudentsPage() {
             )
           }
           width={760}
-          styles={{ content: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
+          styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
         >
           {/* Summary */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>

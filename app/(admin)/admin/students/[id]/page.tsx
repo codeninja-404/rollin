@@ -123,7 +123,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
             </div>
           </div>
 
-          <Descriptions column={{ xs: 1, sm: 2 }} labelStyle={{ color: 'rgba(255,255,255,0.5)' }} contentStyle={{ color: '#fff' }}>
+          <Descriptions column={{ xs: 1, sm: 2 }} styles={{ label: { color: 'rgba(255,255,255,0.5)' }, content: { color: '#fff' } }}>
             <Descriptions.Item label="Email">{student.email}</Descriptions.Item>
             <Descriptions.Item label="Department">{student.department ?? '—'}</Descriptions.Item>
             <Descriptions.Item label="Semester">{student.semester ?? '—'}</Descriptions.Item>

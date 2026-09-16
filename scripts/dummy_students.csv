@@ -1,0 +1,21 @@
+student_code,name,email,department,semester,section
+STU001,Aryan Khan,aryan.khan@university.edu,CSE,3,A
+STU002,Priya Sharma,priya.sharma@university.edu,CSE,3,A
+STU003,Rahul Mehta,rahul.mehta@university.edu,CSE,3,A
+STU004,Sneha Patel,sneha.patel@university.edu,CSE,3,A
+STU005,Aditya Roy,aditya.roy@university.edu,CSE,3,B
+STU006,Meera Nair,meera.nair@university.edu,CSE,3,B
+STU007,Karan Joshi,karan.joshi@university.edu,CSE,3,B
+STU008,Ananya Singh,ananya.singh@university.edu,CSE,3,B
+STU009,Vikram Das,vikram.das@university.edu,EEE,3,A
+STU010,Pooja Reddy,pooja.reddy@university.edu,EEE,3,A
+STU011,Rohan Gupta,rohan.gupta@university.edu,EEE,3,A
+STU012,Divya Kumar,divya.kumar@university.edu,EEE,3,A
+STU013,Saurabh Yadav,saurabh.yadav@university.edu,ME,5,A
+STU014,Nisha Bose,nisha.bose@university.edu,ME,5,A
+STU015,Tarun Pillai,tarun.pillai@university.edu,ME,5,B
+STU016,Kavya Iyer,kavya.iyer@university.edu,BBA,1,A
+STU017,Harish Verma,harish.verma@university.edu,BBA,1,A
+STU018,Leena Thomas,leena.thomas@university.edu,BBA,1,B
+STU019,Nikhil Sharma,nikhil.sharma@university.edu,CSE,5,A
+STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A

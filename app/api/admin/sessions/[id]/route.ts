@@ -19,18 +19,18 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/api/admin/se
       .select('*, student:students(*)')
       .eq('session_id', id)
       .order('marked_at'),
-    // Count enrolled students for this class
+    // Fetch enrolled students for this class
     admin.from('attendance_sessions')
       .select('class_id')
       .eq('id', id)
       .single()
       .then(async (res: { data: { class_id: string } | null; error: any }) => {
-        if (!res.data) return { count: 0 };
-        const { count } = await admin
+        if (!res.data) return { count: 0, students: [] };
+        const { data, count } = await admin
           .from('class_students')
-          .select('id', { count: 'exact', head: true })
+          .select('*, student:students(*)', { count: 'exact' })
           .eq('class_id', res.data.class_id);
-        return { count: count ?? 0 };
+        return { count: count ?? 0, students: data ?? [] };
       }),
   ]);
 
@@ -38,6 +38,7 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/api/admin/se
     session: sessionRes.data,
     attendance: attendanceRes.data ?? [],
     totalStudents: totalStudentsRes.count,
+    enrolledStudents: totalStudentsRes.students,
   });
 }
 

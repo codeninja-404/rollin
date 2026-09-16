@@ -15,6 +15,7 @@ import type { ColumnsType } from 'antd/es/table';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
 import StylishLoader from '@/components/StylishLoader';
 import dayjs from 'dayjs';
+import * as XLSX from 'xlsx';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -153,98 +154,202 @@ export default function ReportsPage() {
     });
   }, [sessionLogs, selectedClass, selectedDept]);
 
-  // CSV Export: Students
-  const exportStudentsCSV = () => {
+  // XLSX Export: Students
+  const exportStudentsXLSX = () => {
     if (filteredStudents.length === 0) {
       message.warning('No student attendance records to export');
       return;
     }
 
-    const headers = [
-      'Student ID',
-      'Student Name',
-      'Email',
-      'Course Code',
-      'Class Name',
-      'Department',
-      'Semester',
-      'Section',
-      'Total Sessions Held',
-      'Sessions Attended',
-      'Sessions Missed',
-      'Attendance Percentage',
-      'Status Tier',
-    ];
+    const data = filteredStudents.map((s) => ({
+      'Student ID': s.student_code,
+      'Student Name': s.student_name,
+      'Email': s.email,
+      'Course Code': s.course_code,
+      'Class Name': s.class_name,
+      'Department': s.department,
+      'Semester': s.semester ?? '',
+      'Section': s.section ?? '',
+      'Total Sessions Held': s.sessions,
+      'Sessions Attended': s.present,
+      'Sessions Missed': s.missed,
+      'Attendance Percentage': `${s.percent}%`,
+      'Status Tier': s.status_tier.toUpperCase(),
+    }));
 
-    const rows = filteredStudents.map((s) => [
-      `"${s.student_code}"`,
-      `"${s.student_name.replace(/"/g, '""')}"`,
-      `"${s.email}"`,
-      `"${s.course_code}"`,
-      `"${s.class_name.replace(/"/g, '""')}"`,
-      `"${s.department}"`,
-      s.semester ?? '',
-      s.section ?? '',
-      s.sessions,
-      s.present,
-      s.missed,
-      `${s.percent}%`,
-      s.status_tier.toUpperCase(),
-    ]);
-
-    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Rollin_Student_Attendance_Report_${dayjs().format('YYYY-MM-DD')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    message.success('Student attendance report exported!');
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Student Attendance');
+    XLSX.writeFile(workbook, `Rollin_Student_Attendance_Report_${dayjs().format('YYYY-MM-DD')}.xlsx`);
+    message.success('Student attendance report exported (.xlsx)!');
   };
 
-  // CSV Export: Classes
-  const exportClassesCSV = () => {
+  // XLSX Export: Classes
+  const exportClassesXLSX = () => {
     if (filteredClasses.length === 0) {
       message.warning('No class summary records to export');
       return;
     }
 
-    const headers = [
-      'Course Code',
-      'Class Name',
-      'Department',
-      'Semester',
-      'Section',
-      'Enrolled Students',
-      'Total Sessions',
-      'Total Attendances',
-      'Average Attendance Percentage',
-    ];
+    const data = filteredClasses.map((c) => ({
+      'Course Code': c.course_code,
+      'Class Name': c.class_name,
+      'Department': c.department,
+      'Semester': c.semester ?? '',
+      'Section': c.section ?? '',
+      'Enrolled Students': c.total_students,
+      'Total Sessions': c.total_sessions,
+      'Total Attendances': c.total_attendances,
+      'Average Attendance Percentage': `${c.avg_percent}%`,
+    }));
 
-    const rows = filteredClasses.map((c) => [
-      `"${c.course_code}"`,
-      `"${c.class_name.replace(/"/g, '""')}"`,
-      `"${c.department}"`,
-      c.semester ?? '',
-      c.section ?? '',
-      c.total_students,
-      c.total_sessions,
-      c.total_attendances,
-      `${c.avg_percent}%`,
-    ]);
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Class Summaries');
+    XLSX.writeFile(workbook, `Rollin_Class_Attendance_Summary_${dayjs().format('YYYY-MM-DD')}.xlsx`);
+    message.success('Class summary report exported (.xlsx)!');
+  };
 
-    const csvContent = [headers.join(','), ...rows.map((r) => r.join(','))].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', `Rollin_Class_Attendance_Summary_${dayjs().format('YYYY-MM-DD')}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    message.success('Class summary report exported!');
+  // State for tracking single session export in progress
+  const [exportingSessionId, setExportingSessionId] = useState<string | null>(null);
+
+  // XLSX Export: All Sessions Summary
+  const exportSessionsSummaryXLSX = () => {
+    if (filteredSessions.length === 0) {
+      message.warning('No session history records to export');
+      return;
+    }
+
+    const data = filteredSessions.map((s) => ({
+      'Session ID': s.session_id,
+      'Course Code': s.course_code,
+      'Class Name': s.class_name,
+      'Department': s.department,
+      'Session Date': dayjs(s.started_at).format('YYYY-MM-DD'),
+      'Start Time': dayjs(s.started_at).format('hh:mm A'),
+      'End Time': s.ended_at ? dayjs(s.ended_at).format('hh:mm A') : 'Live Open',
+      'Status': s.status === 'open' ? 'Live Open' : 'Closed',
+      'Total Enrolled': s.total_enrolled,
+      'Present Count': s.present_count,
+      'Absent Count': s.absent_count,
+      'Turnout Rate': `${s.percent}%`,
+    }));
+
+    const worksheet = XLSX.utils.json_to_sheet(data);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Session History');
+    XLSX.writeFile(workbook, `Rollin_Session_Attendance_Summary_${dayjs().format('YYYY-MM-DD')}.xlsx`);
+    message.success('Session summary report exported (.xlsx)!');
+  };
+
+  // XLSX Export: Single Session with Detailed Attendee Roster
+  const exportSingleSessionXLSX = async (session: SessionLog) => {
+    setExportingSessionId(session.session_id);
+    try {
+      const res = await fetch(`/api/admin/sessions/${session.session_id}`);
+      const data = await res.json();
+      if (!res.ok) {
+        message.error(data.error || 'Failed to fetch session attendee data');
+        return;
+      }
+
+      const attendanceMap = new Map<string, any>();
+      (data.attendance || []).forEach((a: any) => {
+        attendanceMap.set(a.student_id, a);
+      });
+
+      // Build roster: enrolled students + any other attendee
+      const rosterList: any[] = [];
+      const enrolled: any[] = data.enrolledStudents || [];
+      const seenStudents = new Set<string>();
+
+      enrolled.forEach((item: any) => {
+        const student = item.student;
+        if (!student) return;
+        seenStudents.add(student.id);
+        const record = attendanceMap.get(student.id);
+        rosterList.push({
+          'Student Code': student.student_code,
+          'Student Name': student.name,
+          'Email': student.email,
+          'Department': student.department || session.department,
+          'Semester': student.semester ?? '',
+          'Section': student.section ?? '',
+          'Attendance Status': record ? 'PRESENT' : 'ABSENT',
+          'Check-in Time': record ? dayjs(record.marked_at).format('hh:mm:ss A') : '—',
+          'Verified IP': record?.ip_address || '—',
+        });
+      });
+
+      // Include any attendee that wasn't in the enrolled list
+      (data.attendance || []).forEach((a: any) => {
+        if (!seenStudents.has(a.student_id) && a.student) {
+          rosterList.push({
+            'Student Code': a.student.student_code,
+            'Student Name': a.student.name,
+            'Email': a.student.email,
+            'Department': a.student.department || session.department,
+            'Semester': a.student.semester ?? '',
+            'Section': a.student.section ?? '',
+            'Attendance Status': 'PRESENT',
+            'Check-in Time': dayjs(a.marked_at).format('hh:mm:ss A'),
+            'Verified IP': a.ip_address || '—',
+          });
+        }
+      });
+
+      // Fallback if no enrolled list in DB
+      if (rosterList.length === 0 && (data.attendance || []).length > 0) {
+        (data.attendance || []).forEach((a: any) => {
+          rosterList.push({
+            'Student Code': a.student?.student_code || '—',
+            'Student Name': a.student?.name || '—',
+            'Email': a.student?.email || '—',
+            'Department': a.student?.department || session.department,
+            'Semester': a.student?.semester ?? '',
+            'Section': a.student?.section ?? '',
+            'Attendance Status': 'PRESENT',
+            'Check-in Time': dayjs(a.marked_at).format('hh:mm:ss A'),
+            'Verified IP': a.ip_address || '—',
+          });
+        });
+      }
+
+      if (rosterList.length === 0) {
+        message.warning('No student records found for this session');
+        return;
+      }
+
+      // Metadata summary sheet
+      const sessionSummaryData = [
+        { Parameter: 'Course Code', Value: session.course_code },
+        { Parameter: 'Class Name', Value: session.class_name },
+        { Parameter: 'Department', Value: session.department },
+        { Parameter: 'Session Date', Value: dayjs(session.started_at).format('YYYY-MM-DD') },
+        { Parameter: 'Started At', Value: dayjs(session.started_at).format('hh:mm:ss A') },
+        { Parameter: 'Ended At', Value: session.ended_at ? dayjs(session.ended_at).format('hh:mm:ss A') : 'Live / Active' },
+        { Parameter: 'Status', Value: session.status.toUpperCase() },
+        { Parameter: 'Total Enrolled', Value: session.total_enrolled },
+        { Parameter: 'Total Present', Value: session.present_count },
+        { Parameter: 'Total Absent', Value: session.absent_count },
+        { Parameter: 'Turnout Rate', Value: `${session.percent}%` },
+      ];
+
+      const workbook = XLSX.utils.book_new();
+      const wsRoster = XLSX.utils.json_to_sheet(rosterList);
+      const wsSummary = XLSX.utils.json_to_sheet(sessionSummaryData);
+
+      XLSX.utils.book_append_sheet(workbook, wsRoster, 'Attendance Roster');
+      XLSX.utils.book_append_sheet(workbook, wsSummary, 'Session Overview');
+
+      const fileName = `Session_${session.course_code}_${dayjs(session.started_at).format('YYYY-MM-DD_HHmm')}.xlsx`;
+      XLSX.writeFile(workbook, fileName);
+      message.success(`Exported ${session.course_code} session report (.xlsx)!`);
+    } catch (err) {
+      message.error('Failed to export session report');
+    } finally {
+      setExportingSessionId(null);
+    }
   };
 
   // Table Columns: Students
@@ -475,6 +580,28 @@ export default function ReportsPage() {
         </Tag>
       ),
     },
+    {
+      title: 'Export',
+      key: 'action',
+      align: 'center',
+      render: (_, r) => (
+        <Button
+          size="small"
+          icon={<FileExcelOutlined />}
+          loading={exportingSessionId === r.session_id}
+          onClick={() => exportSingleSessionXLSX(r)}
+          style={{
+            background: 'rgba(99, 102, 241, 0.12)',
+            borderColor: 'rgba(99, 102, 241, 0.3)',
+            color: '#a5b4fc',
+            borderRadius: 6,
+            fontWeight: 500,
+          }}
+        >
+          Export XLSX
+        </Button>
+      ),
+    },
   ];
 
   const statCardStyle = {
@@ -522,7 +649,7 @@ export default function ReportsPage() {
             </Button>
             <Button
               icon={<FileExcelOutlined />}
-              onClick={exportClassesCSV}
+              onClick={exportClassesXLSX}
               style={{
                 background: 'rgba(255,255,255,0.06)',
                 borderColor: 'rgba(255,255,255,0.12)',
@@ -532,12 +659,26 @@ export default function ReportsPage() {
                 fontWeight: 500,
               }}
             >
-              Export Class Summary
+              Export Class Summary (XLSX)
+            </Button>
+            <Button
+              icon={<FileExcelOutlined />}
+              onClick={exportSessionsSummaryXLSX}
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                borderColor: 'rgba(255,255,255,0.12)',
+                color: '#fff',
+                borderRadius: 10,
+                height: 38,
+                fontWeight: 500,
+              }}
+            >
+              Export Sessions (XLSX)
             </Button>
             <Button
               type="primary"
               icon={<DownloadOutlined />}
-              onClick={exportStudentsCSV}
+              onClick={exportStudentsXLSX}
               style={{
                 background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
                 border: 'none',
@@ -547,7 +688,7 @@ export default function ReportsPage() {
                 boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
               }}
             >
-              Export Student Report (CSV)
+              Export Student Report (XLSX)
             </Button>
           </Space>
         </div>
@@ -807,14 +948,44 @@ export default function ReportsPage() {
                     key: 'sessions',
                     label: `Session History Logs (${filteredSessions.length})`,
                     children: (
-                      <Table
-                        dataSource={filteredSessions}
-                        columns={sessionColumns}
-                        rowKey="session_id"
-                        pagination={{ pageSize: 15, showSizeChanger: false }}
-                        locale={{ emptyText: <Empty description="No attendance sessions recorded yet" /> }}
-                        style={{ padding: '0 0 16px' }}
-                      />
+                      <div style={{ padding: '0 0 16px' }}>
+                        <div style={{
+                          display: 'flex',
+                          justifyContent: 'space-between',
+                          alignItems: 'center',
+                          padding: '12px 16px',
+                          borderBottom: '1px solid rgba(255,255,255,0.06)',
+                          marginBottom: 12,
+                          flexWrap: 'wrap',
+                          gap: 10,
+                        }}>
+                          <Text type="secondary" style={{ fontSize: 13 }}>
+                            {filteredSessions.length} session records found — click <strong style={{ color: '#a5b4fc' }}>Export XLSX</strong> on any row to download full student attendee rosters
+                          </Text>
+                          <Button
+                            size="small"
+                            icon={<FileExcelOutlined />}
+                            onClick={exportSessionsSummaryXLSX}
+                            style={{
+                              background: 'rgba(99,102,241,0.15)',
+                              borderColor: 'rgba(99,102,241,0.3)',
+                              color: '#fff',
+                              borderRadius: 8,
+                              height: 32,
+                              fontWeight: 500,
+                            }}
+                          >
+                            Export All Sessions (XLSX)
+                          </Button>
+                        </div>
+                        <Table
+                          dataSource={filteredSessions}
+                          columns={sessionColumns}
+                          rowKey="session_id"
+                          pagination={{ pageSize: 15, showSizeChanger: false }}
+                          locale={{ emptyText: <Empty description="No attendance sessions recorded yet" /> }}
+                        />
+                      </div>
                     ),
                   },
                 ]}

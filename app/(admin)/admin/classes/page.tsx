@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback } from 'react';
 import {
   Card, Table, Button, Typography, Tag, Modal, Form, Input,
-  Select, Space, Dropdown, message, Empty,
+  Select, Space, Dropdown, message, Empty, Row, Col,
 } from 'antd';
 import {
   BookOutlined, PlusOutlined, MoreOutlined, TeamOutlined,
@@ -184,47 +184,109 @@ export default function ClassesPage() {
 
         {/* Create class modal */}
         <Modal
-          title={<Text strong style={{ color: '#fff', fontSize: 16 }}>Create New Class</Text>}
+          title={
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 8 }}>
+              <div style={{
+                width: 38,
+                height: 38,
+                borderRadius: 10,
+                background: 'rgba(99, 102, 241, 0.15)',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                color: '#818cf8',
+                fontSize: 18,
+              }}>
+                <BookOutlined />
+              </div>
+              <div>
+                <div style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>Create New Class</div>
+                <Text type="secondary" style={{ fontSize: 12 }}>Define course code, name, department, and section</Text>
+              </div>
+            </div>
+          }
           open={modalOpen}
           onCancel={() => { setModalOpen(false); form.resetFields(); }}
           footer={null}
+          width={560}
           styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
         >
-          <Form form={form} layout="vertical" onFinish={handleCreate} style={{ marginTop: 16 }}>
-            <Form.Item name="course_code" label={<Text style={{ color: 'rgba(255,255,255,0.7)' }}>Course Code</Text>} rules={[{ required: true }]}>
-              <Input placeholder="e.g. CSE101" style={{ borderRadius: 8, height: 40 }} />
-            </Form.Item>
-            <Form.Item name="name" label={<Text style={{ color: 'rgba(255,255,255,0.7)' }}>Course Name</Text>} rules={[{ required: true }]}>
-              <Input placeholder="e.g. Data Structures" style={{ borderRadius: 8, height: 40 }} />
-            </Form.Item>
-            <Form.Item name="department" label={<Text style={{ color: 'rgba(255,255,255,0.7)' }}>Department</Text>}>
-              <Select placeholder="Select department" style={{ borderRadius: 8 }}>
+          <Form form={form} layout="vertical" onFinish={handleCreate} style={{ marginTop: 20 }}>
+            <Row gutter={[16, 0]}>
+              <Col xs={24} sm={10}>
+                <Form.Item
+                  name="course_code"
+                  label={<Text style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Course Code</Text>}
+                  rules={[{ required: true, message: 'Please enter course code' }]}
+                >
+                  <Input placeholder="e.g. CSE101" style={{ borderRadius: 8, height: 42 }} />
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={14}>
+                <Form.Item
+                  name="name"
+                  label={<Text style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Course Name</Text>}
+                  rules={[{ required: true, message: 'Please enter course name' }]}
+                >
+                  <Input placeholder="e.g. Data Structures & Algorithms" style={{ borderRadius: 8, height: 42 }} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <Form.Item
+              name="department"
+              label={<Text style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Department</Text>}
+            >
+              <Select placeholder="Select department" style={{ borderRadius: 8, height: 42 }}>
                 {DEPARTMENTS.map((d) => <Option key={d} value={d}>{d}</Option>)}
               </Select>
             </Form.Item>
-            <Space style={{ width: '100%' }}>
-              <Form.Item name="semester" label={<Text style={{ color: 'rgba(255,255,255,0.7)' }}>Semester</Text>} style={{ flex: 1 }}>
-                <Select placeholder="Semester">
-                  {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <Option key={n} value={n}>Semester {n}</Option>)}
-                </Select>
-              </Form.Item>
-              <Form.Item name="section" label={<Text style={{ color: 'rgba(255,255,255,0.7)' }}>Section</Text>} style={{ flex: 1 }}>
-                <Input placeholder="A, B, C…" style={{ borderRadius: 8, height: 40 }} />
-              </Form.Item>
-            </Space>
-            <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
-              <Space>
-                <Button onClick={() => { setModalOpen(false); form.resetFields(); }}>Cancel</Button>
-                <Button
-                  type="primary"
-                  htmlType="submit"
-                  loading={saving}
-                  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', border: 'none', borderRadius: 8 }}
+
+            <Row gutter={[16, 0]}>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  name="semester"
+                  label={<Text style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Semester</Text>}
                 >
-                  Create Class
-                </Button>
-              </Space>
-            </Form.Item>
+                  <Select placeholder="Select semester" style={{ width: '100%', borderRadius: 8, height: 42 }}>
+                    {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <Option key={n} value={n}>Semester {n}</Option>)}
+                  </Select>
+                </Form.Item>
+              </Col>
+              <Col xs={24} sm={12}>
+                <Form.Item
+                  name="section"
+                  label={<Text style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Section</Text>}
+                >
+                  <Input placeholder="e.g. A, B, C…" style={{ borderRadius: 8, height: 42 }} />
+                </Form.Item>
+              </Col>
+            </Row>
+
+            <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 12 }}>
+              <Button
+                onClick={() => { setModalOpen(false); form.resetFields(); }}
+                style={{ height: 40, borderRadius: 8 }}
+              >
+                Cancel
+              </Button>
+              <Button
+                type="primary"
+                htmlType="submit"
+                loading={saving}
+                style={{
+                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  border: 'none',
+                  borderRadius: 8,
+                  height: 40,
+                  padding: '0 24px',
+                  fontWeight: 600,
+                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35)',
+                }}
+              >
+                Create Class
+              </Button>
+            </div>
           </Form>
         </Modal>
       </div>

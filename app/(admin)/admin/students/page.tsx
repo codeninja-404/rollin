@@ -10,9 +10,10 @@ import {
   TeamOutlined, SearchOutlined, UploadOutlined, UserAddOutlined,
   MoreOutlined, EyeOutlined, DeleteOutlined, ImportOutlined,
   CheckCircleOutlined, WarningOutlined, CloseCircleOutlined,
-  DownloadOutlined, PlusOutlined,
+  DownloadOutlined, PlusOutlined, FileExcelOutlined,
 } from '@ant-design/icons';
 import Papa from 'papaparse';
+import * as XLSX from 'xlsx';
 import type { ColumnsType } from 'antd/es/table';
 import type { Student, CsvStudentRow } from '@/lib/types';
 import { useRouter } from 'next/navigation';
@@ -61,34 +62,60 @@ export default function StudentsPage() {
     s.email.toLowerCase().includes(search.toLowerCase()),
   );
 
-  const handleCsvFile = (file: File) => {
-    Papa.parse<CsvStudentRow>(file, {
-      header: true,
-      skipEmptyLines: true,
-      complete: (results) => {
-        const existingEmails = new Set(students.map((s) => s.email.toLowerCase()));
-        const existingCodes = new Set(students.map((s) => s.student_code.toLowerCase()));
-        const seen = new Set<string>();
+  const processRows = (rows: CsvStudentRow[]) => {
+    const existingEmails = new Set(students.map((s) => s.email.toLowerCase()));
+    const existingCodes = new Set(students.map((s) => s.student_code.toLowerCase()));
+    const seen = new Set<string>();
 
-        const preview: CsvPreviewRow[] = results.data.map((row) => {
-          if (!row.student_code || !row.name || !row.email) {
-            return { ...row, _status: 'invalid', _error: 'Missing required fields' };
-          }
-          if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(row.email)) {
-            return { ...row, _status: 'invalid', _error: 'Invalid email' };
-          }
-          const key = `${row.email.toLowerCase()}|${row.student_code.toLowerCase()}`;
-          if (existingEmails.has(row.email.toLowerCase()) || existingCodes.has(row.student_code.toLowerCase()) || seen.has(key)) {
-            return { ...row, _status: 'duplicate', _error: 'Already exists' };
-          }
-          seen.add(key);
-          return { ...row, _status: 'valid' };
-        });
+    const preview: CsvPreviewRow[] = rows.map((row) => {
+      const code = String(row.student_code ?? '').trim();
+      const name = String(row.name ?? '').trim();
+      const email = String(row.email ?? '').trim();
 
-        setCsvPreview(preview);
-        setImportOpen(true);
-      },
+      if (!code || !name || !email) {
+        return { ...row, student_code: code, name, email, _status: 'invalid', _error: 'Missing required fields' };
+      }
+      if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) {
+        return { ...row, student_code: code, name, email, _status: 'invalid', _error: 'Invalid email' };
+      }
+      const key = `${email.toLowerCase()}|${code.toLowerCase()}`;
+      if (existingEmails.has(email.toLowerCase()) || existingCodes.has(code.toLowerCase()) || seen.has(key)) {
+        return { ...row, student_code: code, name, email, _status: 'duplicate', _error: 'Already exists' };
+      }
+      seen.add(key);
+      return { ...row, student_code: code, name, email, _status: 'valid' };
     });
+
+    setCsvPreview(preview);
+    setImportOpen(true);
+  };
+
+  const handleFile = (file: File) => {
+    const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
+    if (isExcel) {
+      const reader = new FileReader();
+      reader.onload = (e) => {
+        try {
+          const data = new Uint8Array(e.target?.result as ArrayBuffer);
+          const workbook = XLSX.read(data, { type: 'array' });
+          const firstSheetName = workbook.SheetNames[0];
+          const worksheet = workbook.Sheets[firstSheetName];
+          const rows = XLSX.utils.sheet_to_json<CsvStudentRow>(worksheet);
+          processRows(rows);
+        } catch (err) {
+          message.error('Failed to parse Excel file. Please ensure it is a valid .xlsx or .xls file.');
+        }
+      };
+      reader.readAsArrayBuffer(file);
+    } else {
+      Papa.parse<CsvStudentRow>(file, {
+        header: true,
+        skipEmptyLines: true,
+        complete: (results) => {
+          processRows(results.data);
+        },
+      });
+    }
     return false; // prevent auto-upload
   };
 
@@ -122,39 +149,35 @@ export default function StudentsPage() {
     setImportDone(false);
   };
 
-  const downloadSampleCsv = () => {
-    const csvContent = `student_code,name,email,department,semester,section
-STU001,Aryan Khan,aryan.khan@university.edu,CSE,3,A
-STU002,Priya Sharma,priya.sharma@university.edu,CSE,3,A
-STU003,Rahul Mehta,rahul.mehta@university.edu,CSE,3,A
-STU004,Sneha Patel,sneha.patel@university.edu,CSE,3,A
-STU005,Aditya Roy,aditya.roy@university.edu,CSE,3,B
-STU006,Meera Nair,meera.nair@university.edu,CSE,3,B
-STU007,Karan Joshi,karan.joshi@university.edu,CSE,3,B
-STU008,Ananya Singh,ananya.singh@university.edu,CSE,3,B
-STU009,Vikram Das,vikram.das@university.edu,EEE,3,A
-STU010,Pooja Reddy,pooja.reddy@university.edu,EEE,3,A
-STU011,Rohan Gupta,rohan.gupta@university.edu,EEE,3,A
-STU012,Divya Kumar,divya.kumar@university.edu,EEE,3,A
-STU013,Saurabh Yadav,saurabh.yadav@university.edu,ME,5,A
-STU014,Nisha Bose,nisha.bose@university.edu,ME,5,A
-STU015,Tarun Pillai,tarun.pillai@university.edu,ME,5,B
-STU016,Kavya Iyer,kavya.iyer@university.edu,BBA,1,A
-STU017,Harish Verma,harish.verma@university.edu,BBA,1,A
-STU018,Leena Thomas,leena.thomas@university.edu,BBA,1,B
-STU019,Nikhil Sharma,nikhil.sharma@university.edu,CSE,5,A
-STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
+  const downloadSampleXlsx = () => {
+    const sampleStudents = [
+      { student_code: 'STU001', name: 'John Doe', email: 'john.doe@university.edu', department: 'CSE', semester: 3, section: 'A' },
+      { student_code: 'STU002', name: 'Jane Doe', email: 'jane.doe@university.edu', department: 'CSE', semester: 3, section: 'A' },
+      { student_code: 'STU003', name: 'John Doe', email: 'john.doe3@university.edu', department: 'CSE', semester: 3, section: 'A' },
+      { student_code: 'STU004', name: 'Jane Doe', email: 'jane.doe4@university.edu', department: 'CSE', semester: 3, section: 'A' },
+      { student_code: 'STU005', name: 'John Doe', email: 'john.doe5@university.edu', department: 'CSE', semester: 3, section: 'B' },
+      { student_code: 'STU006', name: 'Jane Doe', email: 'jane.doe6@university.edu', department: 'CSE', semester: 3, section: 'B' },
+      { student_code: 'STU007', name: 'John Doe', email: 'john.doe7@university.edu', department: 'CSE', semester: 3, section: 'B' },
+      { student_code: 'STU008', name: 'Jane Doe', email: 'jane.doe8@university.edu', department: 'CSE', semester: 3, section: 'B' },
+      { student_code: 'STU009', name: 'John Doe', email: 'john.doe9@university.edu', department: 'EEE', semester: 3, section: 'A' },
+      { student_code: 'STU010', name: 'Jane Doe', email: 'jane.doe10@university.edu', department: 'EEE', semester: 3, section: 'A' },
+      { student_code: 'STU011', name: 'John Doe', email: 'john.doe11@university.edu', department: 'EEE', semester: 3, section: 'A' },
+      { student_code: 'STU012', name: 'Jane Doe', email: 'jane.doe12@university.edu', department: 'EEE', semester: 3, section: 'A' },
+      { student_code: 'STU013', name: 'John Doe', email: 'john.doe13@university.edu', department: 'ME', semester: 5, section: 'A' },
+      { student_code: 'STU014', name: 'Jane Doe', email: 'jane.doe14@university.edu', department: 'ME', semester: 5, section: 'A' },
+      { student_code: 'STU015', name: 'John Doe', email: 'john.doe15@university.edu', department: 'ME', semester: 5, section: 'B' },
+      { student_code: 'STU016', name: 'Jane Doe', email: 'jane.doe16@university.edu', department: 'BBA', semester: 1, section: 'A' },
+      { student_code: 'STU017', name: 'John Doe', email: 'john.doe17@university.edu', department: 'BBA', semester: 1, section: 'A' },
+      { student_code: 'STU018', name: 'Jane Doe', email: 'jane.doe18@university.edu', department: 'BBA', semester: 1, section: 'B' },
+      { student_code: 'STU019', name: 'John Doe', email: 'john.doe19@university.edu', department: 'CSE', semester: 5, section: 'A' },
+      { student_code: 'STU020', name: 'Jane Doe', email: 'jane.doe20@university.edu', department: 'CSE', semester: 5, section: 'A' },
+    ];
 
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.setAttribute('href', url);
-    link.setAttribute('download', 'dummy_students.csv');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-    message.success('Dummy students CSV downloaded!');
+    const worksheet = XLSX.utils.json_to_sheet(sampleStudents);
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Students');
+    XLSX.writeFile(workbook, 'dummy_students.xlsx');
+    message.success('Dummy students XLSX downloaded!');
   };
 
   const handleManualAdd = async (values: any) => {
@@ -287,10 +310,10 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
           </div>
 
           <Space size={12}>
-            {/* Download Sample CSV */}
+            {/* Download Sample XLSX */}
             <Button
-              icon={<DownloadOutlined />}
-              onClick={downloadSampleCsv}
+              icon={<FileExcelOutlined />}
+              onClick={downloadSampleXlsx}
               style={{
                 background: 'rgba(255,255,255,0.06)',
                 borderColor: 'rgba(255,255,255,0.12)',
@@ -300,7 +323,7 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
                 fontWeight: 500,
               }}
             >
-              Dummy CSV
+              Sample XLSX
             </Button>
 
             {/* Manual Add Student */}
@@ -319,8 +342,8 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
               Add Student
             </Button>
 
-            {/* Import CSV */}
-            <Upload accept=".csv" beforeUpload={handleCsvFile} showUploadList={false}>
+            {/* Import Excel / CSV */}
+            <Upload accept=".xlsx,.xls,.csv" beforeUpload={handleFile} showUploadList={false}>
               <Button
                 type="primary"
                 icon={<ImportOutlined />}
@@ -333,7 +356,7 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
                   boxShadow: '0 4px 14px rgba(99,102,241,0.3)',
                 }}
               >
-                Import CSV
+                Import Excel / CSV
               </Button>
             </Upload>
           </Space>
@@ -370,16 +393,38 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
             rowKey="id"
             loading={loading}
             pagination={{ pageSize: 20, showSizeChanger: false }}
-            locale={{ emptyText: 'No students yet. Import a CSV or manually add one.' }}
+            locale={{ emptyText: 'No students yet. Import an Excel / CSV file or manually add one.' }}
           />
         </Card>
 
         {/* Manual Add Student Modal */}
         <Modal
           title={
-            <Text strong style={{ color: '#fff', fontSize: 16 }}>
-              Add New Student
-            </Text>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2))',
+                  border: '1px solid rgba(99,102,241,0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#818cf8',
+                }}
+              >
+                <UserAddOutlined style={{ fontSize: 18 }} />
+              </div>
+              <div>
+                <Text strong style={{ color: '#fff', fontSize: 16, display: 'block' }}>
+                  Add New Student
+                </Text>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  Create a student record manually in the directory
+                </Text>
+              </div>
+            </div>
           }
           open={addOpen}
           onCancel={() => {
@@ -387,7 +432,7 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
             addForm.resetFields();
           }}
           footer={null}
-          width={540}
+          width={580}
           styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
         >
           <Form
@@ -395,25 +440,25 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
             layout="vertical"
             onFinish={handleManualAdd}
             initialValues={{ department: 'CSE', semester: 1, section: 'A' }}
-            style={{ marginTop: 16 }}
+            style={{ marginTop: 20 }}
           >
-            <Row gutter={16}>
-              <Col span={12}>
+            <Row gutter={[16, 0]}>
+              <Col xs={24} sm={12}>
                 <Form.Item
                   label={<span style={{ color: '#fff' }}>Student Code / ID</span>}
                   name="student_code"
                   rules={[{ required: true, message: 'Student code is required' }]}
                 >
-                  <Input placeholder="e.g. STU001" style={{ borderRadius: 8 }} />
+                  <Input placeholder="e.g. STU001" style={{ borderRadius: 8, height: 40 }} />
                 </Form.Item>
               </Col>
-              <Col span={12}>
+              <Col xs={24} sm={12}>
                 <Form.Item
                   label={<span style={{ color: '#fff' }}>Full Name</span>}
                   name="name"
                   rules={[{ required: true, message: 'Student name is required' }]}
                 >
-                  <Input placeholder="e.g. Aryan Khan" style={{ borderRadius: 8 }} />
+                  <Input placeholder="e.g. John Doe" style={{ borderRadius: 8, height: 40 }} />
                 </Form.Item>
               </Col>
             </Row>
@@ -426,23 +471,23 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
                 { type: 'email', message: 'Enter a valid email' },
               ]}
             >
-              <Input placeholder="e.g. aryan@university.edu" style={{ borderRadius: 8 }} />
+              <Input placeholder="e.g. john.doe@university.edu" style={{ borderRadius: 8, height: 40 }} />
             </Form.Item>
 
-            <Row gutter={16}>
-              <Col span={8}>
+            <Row gutter={[16, 0]}>
+              <Col xs={24} sm={8}>
                 <Form.Item label={<span style={{ color: '#fff' }}>Department</span>} name="department">
-                  <Input placeholder="e.g. CSE" style={{ borderRadius: 8 }} />
+                  <Input placeholder="e.g. CSE" style={{ borderRadius: 8, height: 40 }} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col xs={24} sm={8}>
                 <Form.Item label={<span style={{ color: '#fff' }}>Semester</span>} name="semester">
-                  <InputNumber min={1} max={12} style={{ width: '100%', borderRadius: 8 }} />
+                  <InputNumber min={1} max={12} style={{ width: '100%', borderRadius: 8, height: 40, paddingTop: 4 }} />
                 </Form.Item>
               </Col>
-              <Col span={8}>
+              <Col xs={24} sm={8}>
                 <Form.Item label={<span style={{ color: '#fff' }}>Section</span>} name="section">
-                  <Input placeholder="e.g. A" style={{ borderRadius: 8 }} />
+                  <Input placeholder="e.g. A" style={{ borderRadius: 8, height: 40 }} />
                 </Form.Item>
               </Col>
             </Row>
@@ -453,6 +498,7 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
                   setAddOpen(false);
                   addForm.resetFields();
                 }}
+                style={{ height: 40, borderRadius: 8 }}
               >
                 Cancel
               </Button>
@@ -465,6 +511,8 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
                   border: 'none',
                   borderRadius: 8,
                   fontWeight: 600,
+                  height: 40,
+                  padding: '0 24px',
                 }}
               >
                 Create Student
@@ -473,23 +521,45 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
           </Form>
         </Modal>
 
-        {/* CSV Import Modal */}
+        {/* Excel / CSV Import Modal */}
         <Modal
           title={
-            <Text strong style={{ color: '#fff', fontSize: 16 }}>
-              Import Students from CSV
-            </Text>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+              <div
+                style={{
+                  width: 36,
+                  height: 36,
+                  borderRadius: 10,
+                  background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2))',
+                  border: '1px solid rgba(99,102,241,0.4)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                  color: '#818cf8',
+                }}
+              >
+                <FileExcelOutlined style={{ fontSize: 18 }} />
+              </div>
+              <div>
+                <Text strong style={{ color: '#fff', fontSize: 16, display: 'block' }}>
+                  Import Students from Excel (XLSX) or CSV
+                </Text>
+                <Text type="secondary" style={{ fontSize: 12 }}>
+                  Review and import student records into the directory
+                </Text>
+              </div>
+            </div>
           }
           open={importOpen}
           onCancel={closeImport}
           footer={
             importDone ? (
-              <Button type="primary" onClick={closeImport} style={{ borderRadius: 8 }}>
+              <Button type="primary" onClick={closeImport} style={{ borderRadius: 8, height: 40 }}>
                 Done
               </Button>
             ) : (
               <Space>
-                <Button onClick={closeImport}>Cancel</Button>
+                <Button onClick={closeImport} style={{ borderRadius: 8, height: 40 }}>Cancel</Button>
                 <Button
                   type="primary"
                   loading={importing}
@@ -499,6 +569,8 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
                     background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
                     border: 'none',
                     borderRadius: 8,
+                    height: 40,
+                    fontWeight: 600,
                   }}
                 >
                   Import {validCount} Students
@@ -524,7 +596,7 @@ STU020,Swati Mishra,swati.mishra@university.edu,CSE,5,A`;
 
           <Alert
             type="info"
-            message="Required columns: student_code, name, email. Optional: department, semester, section"
+            message="Required columns: student_code, name, email. Optional: department, semester, section (.xlsx and .csv supported)"
             style={{ borderRadius: 8, marginBottom: 16 }}
           />
 

@@ -13,6 +13,7 @@ import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import type { ActiveSessionResponse } from '@/lib/types';
 import dayjs from 'dayjs';
+import StylishLoader from '@/components/StylishLoader';
 
 const { Title, Text } = Typography;
 
@@ -103,9 +104,11 @@ export default function AttendancePage() {
 
   if (loading) {
     return (
-      <div style={{ minHeight: '100vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <Spin size="large" />
-      </div>
+      <StylishLoader
+        message="Checking active attendance..."
+        submessage="Connecting to campus network and session status"
+        fullScreen
+      />
     );
   }
 

@@ -3,6 +3,51 @@ import { createClient, createAdminClient } from '@/lib/supabase/server';
 
 export const dynamic = 'force-dynamic';
 
+interface ClassItem {
+  id: string;
+  course_code: string;
+  name: string;
+  department: string | null;
+  semester: number | null;
+  section: string | null;
+  status: string;
+}
+
+interface SessionItem {
+  id: string;
+  class_id: string;
+  started_at: string;
+  ended_at: string | null;
+  status: string;
+  otp_period?: number;
+}
+
+interface StudentItem {
+  id: string;
+  student_code: string;
+  name: string;
+  email: string;
+  department: string | null;
+  semester: number | null;
+  section: string | null;
+  status: string;
+}
+
+interface ClassStudentItem {
+  id: string;
+  class_id: string;
+  student_id: string;
+  student: StudentItem | null;
+}
+
+interface AttendanceItem {
+  id: string;
+  session_id: string;
+  student_id: string;
+  marked_at: string;
+  status: string;
+}
+
 export async function GET(request: NextRequest) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -21,14 +66,14 @@ export async function GET(request: NextRequest) {
     admin.from('attendance').select('id, session_id, student_id, marked_at, status'),
   ]);
 
-  const allClasses = classesRes.data ?? [];
-  const allSessions = sessionsRes.data ?? [];
-  const allClassStudents = classStudentsRes.data ?? [];
-  const allAttendances = attendanceRes.data ?? [];
+  const allClasses: ClassItem[] = (classesRes.data as any) ?? [];
+  const allSessions: SessionItem[] = (sessionsRes.data as any) ?? [];
+  const allClassStudents: ClassStudentItem[] = (classStudentsRes.data as any) ?? [];
+  const allAttendances: AttendanceItem[] = (attendanceRes.data as any) ?? [];
 
   // Index sessions by class_id
-  const sessionsByClass: Record<string, typeof allSessions> = {};
-  allSessions.forEach((s) => {
+  const sessionsByClass: Record<string, SessionItem[]> = {};
+  allSessions.forEach((s: SessionItem) => {
     if (!sessionsByClass[s.class_id]) sessionsByClass[s.class_id] = [];
     sessionsByClass[s.class_id].push(s);
   });
@@ -36,32 +81,32 @@ export async function GET(request: NextRequest) {
   // Index attendance by session_id and student_id
   const attendanceSet = new Set<string>();
   const attendancesBySession: Record<string, number> = {};
-  allAttendances.forEach((a) => {
+  allAttendances.forEach((a: AttendanceItem) => {
     attendanceSet.add(`${a.session_id}:${a.student_id}`);
     attendancesBySession[a.session_id] = (attendancesBySession[a.session_id] ?? 0) + 1;
   });
 
   // Unique departments
   const departmentSet = new Set<string>();
-  allClasses.forEach((c) => {
+  allClasses.forEach((c: ClassItem) => {
     if (c.department) departmentSet.add(c.department);
   });
 
   // 1. Build Class Reports
   const classReports = allClasses
-    .filter((c) => {
+    .filter((c: ClassItem) => {
       if (filterClassId && c.id !== filterClassId) return false;
       if (filterDepartment && c.department !== filterDepartment) return false;
       return true;
     })
-    .map((c) => {
+    .map((c: ClassItem) => {
       const classSessions = sessionsByClass[c.id] ?? [];
-      const enrolled = allClassStudents.filter((cs) => cs.class_id === c.id);
+      const enrolled = allClassStudents.filter((cs: ClassStudentItem) => cs.class_id === c.id);
       const studentCount = enrolled.length;
       const sessionCount = classSessions.length;
 
       let totalAttendances = 0;
-      classSessions.forEach((s) => {
+      classSessions.forEach((s: SessionItem) => {
         totalAttendances += attendancesBySession[s.id] ?? 0;
       });
 
@@ -102,21 +147,21 @@ export async function GET(request: NextRequest) {
     status_tier: 'good' | 'warning' | 'critical';
   }> = [];
 
-  allClassStudents.forEach((cs) => {
-    const cls = allClasses.find((c) => c.id === cs.class_id);
+  allClassStudents.forEach((cs: ClassStudentItem) => {
+    const cls = allClasses.find((c: ClassItem) => c.id === cs.class_id);
     if (!cls) return;
 
     if (filterClassId && cls.id !== filterClassId) return;
     if (filterDepartment && cls.department !== filterDepartment) return;
 
-    const student = cs.student as any;
+    const student = cs.student;
     if (!student) return;
 
     const classSessions = sessionsByClass[cls.id] ?? [];
     const totalSessions = classSessions.length;
 
     let present = 0;
-    classSessions.forEach((s) => {
+    classSessions.forEach((s: SessionItem) => {
       if (attendanceSet.has(`${s.id}:${student.id}`)) {
         present++;
       }
@@ -155,16 +200,16 @@ export async function GET(request: NextRequest) {
 
   // 3. Build Detailed Session Logs
   const sessionLogs = allSessions
-    .filter((s) => {
-      const cls = allClasses.find((c) => c.id === s.class_id);
+    .filter((s: SessionItem) => {
+      const cls = allClasses.find((c: ClassItem) => c.id === s.class_id);
       if (!cls) return false;
       if (filterClassId && cls.id !== filterClassId) return false;
       if (filterDepartment && cls.department !== filterDepartment) return false;
       return true;
     })
-    .map((s) => {
-      const cls = allClasses.find((c) => c.id === s.class_id);
-      const enrolled = allClassStudents.filter((cs) => cs.class_id === s.class_id).length;
+    .map((s: SessionItem) => {
+      const cls = allClasses.find((c: ClassItem) => c.id === s.class_id);
+      const enrolled = allClassStudents.filter((cs: ClassStudentItem) => cs.class_id === s.class_id).length;
       const present = attendancesBySession[s.id] ?? 0;
       const percent = enrolled > 0 ? Math.round((present / enrolled) * 100) : 0;
 
@@ -188,15 +233,15 @@ export async function GET(request: NextRequest) {
   // 4. Overall KPIs Summary
   let totalPossibleAll = 0;
   let totalAttendancesAll = 0;
-  allSessions.forEach((s) => {
-    const enrolled = allClassStudents.filter((cs) => cs.class_id === s.class_id).length;
+  allSessions.forEach((s: SessionItem) => {
+    const enrolled = allClassStudents.filter((cs: ClassStudentItem) => cs.class_id === s.class_id).length;
     totalPossibleAll += enrolled;
     totalAttendancesAll += attendancesBySession[s.id] ?? 0;
   });
 
   const overallRate = totalPossibleAll > 0 ? Math.round((totalAttendancesAll / totalPossibleAll) * 100) : 0;
   const atRiskCount = studentReports.filter((s) => s.sessions > 0 && s.percent < 75).length;
-  const uniqueEnrolledStudents = new Set(allClassStudents.map((cs) => cs.student_id)).size;
+  const uniqueEnrolledStudents = new Set(allClassStudents.map((cs: ClassStudentItem) => cs.student_id)).size;
 
   return NextResponse.json({
     kpis: {
@@ -211,7 +256,7 @@ export async function GET(request: NextRequest) {
     sessionLogs,
     filters: {
       departments: Array.from(departmentSet).sort(),
-      classes: allClasses.map((c) => ({
+      classes: allClasses.map((c: ClassItem) => ({
         id: c.id,
         name: c.name,
         course_code: c.course_code,

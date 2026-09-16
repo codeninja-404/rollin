@@ -5,6 +5,89 @@ import { Typography } from 'antd';
 
 const { Text } = Typography;
 
+export function OrbitalSpinner({ size = 44 }: { size?: number }) {
+  const strokeWidth = size <= 32 ? 2.5 : 3.5;
+  return (
+    <div
+      style={{
+        position: 'relative',
+        width: size,
+        height: size,
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        margin: '0 auto',
+      }}
+    >
+      {/* Ambient background glow */}
+      <div
+        style={{
+          position: 'absolute',
+          width: size * 1.5,
+          height: size * 1.5,
+          borderRadius: '50%',
+          background: 'radial-gradient(circle, rgba(99, 102, 241, 0.35) 0%, rgba(139, 92, 246, 0.1) 50%, transparent 70%)',
+          filter: 'blur(8px)',
+          animation: 'loaderAmbientPulse 2.5s ease-in-out infinite alternate',
+        }}
+      />
+
+      {/* Outer subtle track ring */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: '50%',
+          border: `${strokeWidth}px solid rgba(255, 255, 255, 0.08)`,
+        }}
+      />
+
+      {/* Spinning Gradient Arc */}
+      <div
+        style={{
+          position: 'absolute',
+          inset: 0,
+          borderRadius: '50%',
+          border: `${strokeWidth}px solid transparent`,
+          borderTopColor: '#6366f1',
+          borderRightColor: '#a855f7',
+          animation: 'loaderSmoothSpin 0.9s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
+          boxShadow: '0 0 16px rgba(99, 102, 241, 0.45)',
+        }}
+      />
+
+      {/* Counter-spinning inner accent */}
+      {size > 28 && (
+        <div
+          style={{
+            position: 'absolute',
+            width: size * 0.55,
+            height: size * 0.55,
+            borderRadius: '50%',
+            border: '2px solid transparent',
+            borderBottomColor: '#38bdf8',
+            borderLeftColor: '#818cf8',
+            opacity: 0.85,
+            animation: 'loaderSmoothSpinReverse 1.4s linear infinite',
+          }}
+        />
+      )}
+
+      {/* Center glowing core dot */}
+      <div
+        style={{
+          width: size <= 32 ? 6 : 8,
+          height: size <= 32 ? 6 : 8,
+          borderRadius: '50%',
+          background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)',
+          boxShadow: '0 0 10px rgba(129, 140, 248, 0.9)',
+          animation: 'loaderCorePulse 1.8s ease-in-out infinite',
+        }}
+      />
+    </div>
+  );
+}
+
 interface StylishLoaderProps {
   message?: string;
   submessage?: string;
@@ -20,10 +103,8 @@ export default function StylishLoader({
   minHeight,
   size = 'default',
 }: StylishLoaderProps) {
-  // Dimensions based on size
-  const ringSize = size === 'small' ? 36 : size === 'large' ? 64 : 48;
-  const strokeWidth = size === 'small' ? 3 : 3.5;
-  const defaultMinHeight = fullScreen ? '100vh' : (minHeight ?? 'calc(75vh - 80px)');
+  const ringSize = size === 'small' ? 32 : size === 'large' ? 60 : 44;
+  const defaultMinHeight = fullScreen ? '100vh' : (minHeight ?? 'calc(70vh - 40px)');
 
   return (
     <div
@@ -34,93 +115,17 @@ export default function StylishLoader({
         justifyContent: 'center',
         minHeight: defaultMinHeight,
         width: '100%',
-        padding: size === 'small' ? '20px 12px' : '40px 16px',
+        padding: size === 'small' ? '20px 12px' : '48px 24px',
         margin: '0 auto',
         boxSizing: 'border-box',
         position: 'relative',
         zIndex: 5,
       }}
     >
-      {/* Central Spinner Container */}
-      <div
-        style={{
-          position: 'relative',
-          width: ringSize,
-          height: ringSize,
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          marginBottom: size === 'small' ? 12 : 18,
-        }}
-      >
-        {/* Ambient background glow */}
-        <div
-          style={{
-            position: 'absolute',
-            width: ringSize * 1.5,
-            height: ringSize * 1.5,
-            borderRadius: '50%',
-            background: 'radial-gradient(circle, rgba(99, 102, 241, 0.28) 0%, rgba(139, 92, 246, 0.08) 50%, transparent 70%)',
-            filter: 'blur(10px)',
-            animation: 'loaderAmbientPulse 2.5s ease-in-out infinite alternate',
-          }}
-        />
-
-        {/* Outer subtle track ring */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius: '50%',
-            border: `${strokeWidth}px solid rgba(255, 255, 255, 0.08)`,
-          }}
-        />
-
-        {/* Spinning Gradient Arc */}
-        <div
-          style={{
-            position: 'absolute',
-            inset: 0,
-            borderRadius: '50%',
-            border: `${strokeWidth}px solid transparent`,
-            borderTopColor: '#6366f1',
-            borderRightColor: '#a855f7',
-            animation: 'loaderSmoothSpin 0.9s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite',
-            boxShadow: '0 0 16px rgba(99, 102, 241, 0.4)',
-          }}
-        />
-
-        {/* Counter-spinning inner accent */}
-        {size !== 'small' && (
-          <div
-            style={{
-              position: 'absolute',
-              width: ringSize * 0.55,
-              height: ringSize * 0.55,
-              borderRadius: '50%',
-              border: `2px solid transparent`,
-              borderBottomColor: '#38bdf8',
-              borderLeftColor: '#818cf8',
-              opacity: 0.8,
-              animation: 'loaderSmoothSpinReverse 1.4s linear infinite',
-            }}
-          />
-        )}
-
-        {/* Center glowing core dot */}
-        <div
-          style={{
-            width: size === 'small' ? 6 : 8,
-            height: size === 'small' ? 6 : 8,
-            borderRadius: '50%',
-            background: 'linear-gradient(135deg, #818cf8 0%, #c084fc 100%)',
-            boxShadow: '0 0 10px rgba(129, 140, 248, 0.9)',
-            animation: 'loaderCorePulse 1.8s ease-in-out infinite',
-          }}
-        />
+      <div style={{ marginBottom: size === 'small' ? 12 : 18 }}>
+        <OrbitalSpinner size={ringSize} />
       </div>
 
-      {/* Message Label */}
       {message && (
         <Text
           style={{
@@ -136,7 +141,6 @@ export default function StylishLoader({
         </Text>
       )}
 
-      {/* Optional Submessage */}
       {submessage && (
         <Text
           type="secondary"

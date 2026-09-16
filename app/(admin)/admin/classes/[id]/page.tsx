@@ -9,6 +9,7 @@ import { useRouter } from 'next/navigation';
 import type { Class, AttendanceSession } from '@/lib/types';
 import dayjs from 'dayjs';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
+import StylishLoader from '@/components/StylishLoader';
 
 const { Title, Text } = Typography;
 
@@ -37,7 +38,16 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
     load();
   }, [params]);
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>;
+  if (loading) {
+    return (
+      <AntdConfigProvider>
+        <StylishLoader
+          message="Loading course details..."
+          submessage="Retrieving enrolled students and session analytics"
+        />
+      </AntdConfigProvider>
+    );
+  }
   if (!cls) return <Empty description="Class not found" />;
 
   const sessionColumns = [

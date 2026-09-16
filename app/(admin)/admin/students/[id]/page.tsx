@@ -37,7 +37,16 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     load();
   }, [params]);
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>;
+  if (loading) {
+    return (
+      <AntdConfigProvider>
+        <StylishLoader
+          message="Loading student profile..."
+          submessage="Retrieving enrolled courses and attendance history"
+        />
+      </AntdConfigProvider>
+    );
+  }
   if (!student) return <Empty description="Student not found" />;
 
   const attendanceColumns = [

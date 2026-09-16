@@ -1,9 +1,19 @@
 'use client';
 
-import React from 'react';
-import { ConfigProvider, theme } from 'antd';
+import React, { useEffect } from 'react';
+import { ConfigProvider, theme, Spin } from 'antd';
+import { OrbitalSpinner } from '@/components/StylishLoader';
+
+// Set global default indicator for any Spin / Table loading in Ant Design
+if (typeof window !== 'undefined') {
+  Spin.setDefaultIndicator(<OrbitalSpinner size={36} />);
+}
 
 export default function AntdConfigProvider({ children }: { children: React.ReactNode }) {
+  useEffect(() => {
+    Spin.setDefaultIndicator(<OrbitalSpinner size={36} />);
+  }, []);
+
   return (
     <ConfigProvider
       theme={{
@@ -20,6 +30,9 @@ export default function AntdConfigProvider({ children }: { children: React.React
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
         },
         components: {
+          Spin: {
+            colorPrimary: '#6366f1',
+          },
           Menu: {
             darkItemBg: 'transparent',
             darkSubMenuItemBg: 'transparent',

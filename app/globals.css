@@ -121,3 +121,159 @@ body {
 .ant-tabs-ink-bar {
   background: #6366f1 !important;
 }
+
+/* Unified Centered Spinner & Table Loading Overrides */
+
+/* 1. Eliminate the old Ant Design 4-dot spinner completely (even on SSR / reload) */
+.ant-spin-dot-item {
+  display: none !important;
+}
+
+.ant-spin-dot {
+  position: relative !important;
+  width: 42px !important;
+  height: 42px !important;
+  font-size: 42px !important;
+  margin: 0 auto !important;
+  border-radius: 50% !important;
+  border: 3.5px solid rgba(255, 255, 255, 0.08) !important;
+  border-top-color: #6366f1 !important;
+  border-right-color: #a855f7 !important;
+  animation: loaderSmoothSpin 0.9s cubic-bezier(0.45, 0.05, 0.55, 0.95) infinite !important;
+  box-shadow: 0 0 18px rgba(99, 102, 241, 0.45) !important;
+  display: block !important;
+}
+
+/* Inner orbital ring via pseudo-element */
+.ant-spin-dot::before {
+  content: '' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 22px !important;
+  height: 22px !important;
+  margin: -11px 0 0 -11px !important;
+  border-radius: 50% !important;
+  border: 2px solid transparent !important;
+  border-bottom-color: #38bdf8 !important;
+  border-left-color: #818cf8 !important;
+  animation: loaderSmoothSpinReverse 1.4s linear infinite !important;
+}
+
+/* Center glowing core dot via pseudo-element */
+.ant-spin-dot::after {
+  content: '' !important;
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  width: 7px !important;
+  height: 7px !important;
+  margin: -3.5px 0 0 -3.5px !important;
+  border-radius: 50% !important;
+  background: linear-gradient(135deg, #818cf8 0%, #c084fc 100%) !important;
+  box-shadow: 0 0 10px rgba(129, 140, 248, 0.95) !important;
+  animation: loaderCorePulse 1.8s ease-in-out infinite !important;
+}
+
+/* Small size variant */
+.ant-spin-sm .ant-spin-dot {
+  width: 26px !important;
+  height: 26px !important;
+  font-size: 26px !important;
+  border-width: 2.5px !important;
+}
+.ant-spin-sm .ant-spin-dot::before {
+  width: 13px !important;
+  height: 13px !important;
+  margin: -6.5px 0 0 -6.5px !important;
+}
+.ant-spin-sm .ant-spin-dot::after {
+  width: 5px !important;
+  height: 5px !important;
+  margin: -2.5px 0 0 -2.5px !important;
+}
+
+/* Large size variant */
+.ant-spin-lg .ant-spin-dot {
+  width: 54px !important;
+  height: 54px !important;
+  font-size: 54px !important;
+  border-width: 4px !important;
+}
+.ant-spin-lg .ant-spin-dot::before {
+  width: 28px !important;
+  height: 28px !important;
+  margin: -14px 0 0 -14px !important;
+}
+.ant-spin-lg .ant-spin-dot::after {
+  width: 9px !important;
+  height: 9px !important;
+  margin: -4.5px 0 0 -4.5px !important;
+}
+
+/* 2. Table Loading: generous vertical spacing and proper centering */
+.ant-table-wrapper .ant-spin-nested-loading {
+  min-height: 260px !important;
+  position: relative !important;
+}
+
+/* Center the spinner dead in the middle of the table */
+.ant-table-wrapper .ant-spin-nested-loading > div > .ant-spin {
+  position: absolute !important;
+  top: 50% !important;
+  left: 50% !important;
+  transform: translate(-50%, -50%) !important;
+  margin: 0 !important;
+  max-height: none !important;
+  z-index: 20 !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+}
+
+/* Give the placeholder plenty of height so it never collapses into a thin strip */
+.ant-table-wrapper .ant-table-placeholder {
+  min-height: 220px !important;
+  height: 220px !important;
+}
+
+.ant-table-wrapper .ant-table-placeholder .ant-table-cell {
+  height: 220px !important;
+  vertical-align: middle !important;
+}
+
+/* CRITICAL FIX: Hide the empty text while loading so it never collides/overlaps with the spinner! */
+.ant-spin-container.ant-spin-blur .ant-empty,
+.ant-spin-container.ant-spin-blur .ant-table-placeholder .ant-table-cell,
+.ant-spin-container.ant-spin-blur .ant-empty-description,
+.ant-spin-container.ant-spin-blur .ant-table-expanded-row-fixed {
+  visibility: hidden !important;
+  opacity: 0 !important;
+}
+
+.ant-table-wrapper .ant-spin-container.ant-spin-blur {
+  opacity: 0.15 !important;
+  filter: blur(2px) !important;
+  transition: opacity 0.2s ease, filter 0.2s ease;
+}
+
+@keyframes loaderSmoothSpin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+@keyframes loaderSmoothSpinReverse {
+  0% { transform: rotate(360deg); }
+  100% { transform: rotate(0deg); }
+}
+
+@keyframes loaderAmbientPulse {
+  0% { opacity: 0.4; transform: scale(0.9); }
+  100% { opacity: 0.85; transform: scale(1.15); }
+}
+
+@keyframes loaderCorePulse {
+  0%, 100% { transform: scale(0.85); opacity: 0.7; }
+  50% { transform: scale(1.2); opacity: 1; }
+}

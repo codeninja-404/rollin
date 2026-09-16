@@ -42,7 +42,7 @@ export async function POST(request: NextRequest) {
   // Step 4: Session exists?
   const { data: session } = await admin
     .from('attendance_sessions')
-    .select('id, class_id, status, otp_secret')
+    .select('id, class_id, status, otp_secret, otp_period')
     .eq('id', session_id)
     .maybeSingle();
 
@@ -74,7 +74,8 @@ export async function POST(request: NextRequest) {
   }
 
   // Step 8: OTP valid?
-  const otpValid = validateOTP(session.otp_secret, String(otp).trim());
+  const period = Math.max(3, session.otp_period || 5);
+  const otpValid = validateOTP(session.otp_secret, String(otp).trim(), period);
   if (!otpValid) {
     return NextResponse.json({ error: 'Invalid or expired OTP. Please try again.' }, { status: 400 });
   }

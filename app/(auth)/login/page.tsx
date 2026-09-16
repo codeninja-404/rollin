@@ -38,7 +38,11 @@ export default function LoginPage() {
     });
 
     if (authError) {
-      setError(authError.message);
+      if (authError.message.toLowerCase().includes('invalid login credentials')) {
+        setError('Invalid credentials. If this is your first time logging in, please click "Activate Account" above to set your password.');
+      } else {
+        setError(authError.message);
+      }
       setLoading(false);
       return;
     }

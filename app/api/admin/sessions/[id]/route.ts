@@ -41,23 +41,35 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/api/admin/se
   });
 }
 
-// PATCH /api/admin/sessions/[id] — close session
+// PATCH /api/admin/sessions/[id] — update session (close or change otp_period)
 export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/sessions/[id]'>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
   const { id } = await ctx.params;
-  const { status } = await request.json();
-
-  if (status !== 'closed') {
-    return NextResponse.json({ error: 'Only "closed" status is supported' }, { status: 400 });
-  }
+  const body = await request.json();
+  const { status, otp_period } = body;
 
   const admin = createAdminClient();
+  const updatePayload: Record<string, any> = {};
+
+  if (status === 'closed') {
+    updatePayload.status = 'closed';
+    updatePayload.ended_at = new Date().toISOString();
+  }
+
+  if (otp_period !== undefined) {
+    updatePayload.otp_period = Math.max(3, Math.min(120, Number(otp_period) || 5));
+  }
+
+  if (Object.keys(updatePayload).length === 0) {
+    return NextResponse.json({ error: 'No valid fields to update' }, { status: 400 });
+  }
+
   const { data, error } = await admin
     .from('attendance_sessions')
-    .update({ status: 'closed', ended_at: new Date().toISOString() })
+    .update(updatePayload)
     .eq('id', id)
     .select()
     .single();
@@ -66,10 +78,11 @@ export async function PATCH(request: NextRequest, ctx: RouteContext<'/api/admin/
 
   await admin.from('audit_logs').insert({
     actor_id: user.id,
-    action: 'attendance.close',
+    action: status === 'closed' ? 'attendance.close' : 'attendance.update_period',
     entity: 'attendance_sessions',
     entity_id: id,
     ip_address: request.headers.get('x-real-ip') ?? null,
+    metadata: updatePayload,
   });
 
   return NextResponse.json({ session: data });

@@ -1,11 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createClient, createAdminClient } from '@/lib/supabase/server';
-import { getCurrentOTP, getSecondsRemaining } from '@/lib/otp';
+import { getCurrentOTP, getNextOTP, getSecondsRemaining } from '@/lib/otp';
 
 export const dynamic = 'force-dynamic';
 export const revalidate = 0;
 
-// GET /api/admin/sessions/[id]/otp — get current OTP for admin display
+// GET /api/admin/sessions/[id]/otp — get current and next OTP for seamless display
 export async function GET(request: NextRequest, ctx: RouteContext<'/api/admin/sessions/[id]/otp'>) {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
@@ -16,7 +16,7 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/api/admin/se
 
   const { data: session, error } = await admin
     .from('attendance_sessions')
-    .select('id, status, otp_secret')
+    .select('id, status, otp_secret, otp_period')
     .eq('id', id)
     .single();
 
@@ -28,11 +28,13 @@ export async function GET(request: NextRequest, ctx: RouteContext<'/api/admin/se
     return NextResponse.json({ error: 'Session is closed' }, { status: 400 });
   }
 
-  const otp = getCurrentOTP(session.otp_secret);
-  const seconds_remaining = getSecondsRemaining();
+  const period = Math.max(3, session.otp_period || 5);
+  const otp = getCurrentOTP(session.otp_secret, period);
+  const next_otp = getNextOTP(session.otp_secret, period);
+  const seconds_remaining = getSecondsRemaining(period);
 
   return NextResponse.json(
-    { otp, seconds_remaining, period: 5 },
+    { otp, next_otp, seconds_remaining, period },
     {
       headers: {
         'Cache-Control': 'no-store, no-cache, must-revalidate, proxy-revalidate, max-age=0',

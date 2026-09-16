@@ -49,6 +49,7 @@ export interface AttendanceSession {
   started_at: string;
   ended_at: string | null;
   otp_secret: string;
+  otp_period?: number;
   status: SessionStatus;
   created_by: string | null;
   created_at: string;

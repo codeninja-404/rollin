@@ -10,6 +10,7 @@ import { useRouter } from 'next/navigation';
 import type { Student, ClassStudent, Attendance } from '@/lib/types';
 import dayjs from 'dayjs';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
+import StylishLoader from '@/components/StylishLoader';
 
 const { Title, Text } = Typography;
 

@@ -15,6 +15,8 @@ import AntdConfigProvider from '@/components/AntdConfigProvider';
 import type { AttendanceSession, Attendance } from '@/lib/types';
 import dayjs from 'dayjs';
 
+import StylishLoader from '@/components/StylishLoader';
+
 const { Title, Text } = Typography;
 
 export default function PresentSessionPage({ params }: { params: Promise<{ id: string }> }) {
@@ -22,14 +24,21 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
   const [session, setSession] = useState<AttendanceSession | null>(null);
   const [otp, setOtp] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(5);
+  const [smoothProgress, setSmoothProgress] = useState(100);
+  const [isFlipping, setIsFlipping] = useState(false);
   const [attendanceCount, setAttendanceCount] = useState(0);
   const [totalStudents, setTotalStudents] = useState(0);
   const [loading, setLoading] = useState(true);
   const [isFullscreen, setIsFullscreen] = useState(false);
   const [currentTime, setCurrentTime] = useState('');
+  const [otpPeriod, setOtpPeriod] = useState(5);
 
   const supabase = createClient();
   const clockRef = useRef<NodeJS.Timeout | null>(null);
+  const lastWindowRef = useRef<number>(-1);
+  const tickerRef = useRef<NodeJS.Timeout | null>(null);
+  const nextOtpRef = useRef<string>('');
+  const isFetchingRef = useRef(false);
 
   // Live wall clock
   useEffect(() => {
@@ -65,6 +74,9 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
       if (!res.ok) return;
       const data = await res.json();
       setSession(data.session);
+      if (data.session?.otp_period) {
+        setOtpPeriod(data.session.otp_period);
+      }
       setAttendanceCount((data.attendance ?? []).length);
       setTotalStudents(data.totalStudents ?? 0);
     } catch (e) {
@@ -74,6 +86,8 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
 
   // Fetch current OTP with cache busting
   const fetchOtp = useCallback(async (id: string) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     try {
       const res = await fetch(`/api/admin/sessions/${id}/otp?t=${Date.now()}`, {
         cache: 'no-store',
@@ -81,55 +95,76 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
       });
       if (res.ok) {
         const data = await res.json();
-        setOtp(data.otp);
+        setOtp((current) => current || data.otp);
+        if (data.next_otp) {
+          nextOtpRef.current = data.next_otp;
+        }
+        if (data.period) {
+          setOtpPeriod(data.period);
+        }
       }
     } catch (e) {
       console.error('Failed to fetch OTP', e);
+    } finally {
+      isFetchingRef.current = false;
     }
   }, []);
 
-  // Continuous clock-synced OTP loop
-  const lastWindowRef = useRef<number>(-1);
-  const tickerRef = useRef<NodeJS.Timeout | null>(null);
-
+  // Continuous fluid clock-synced OTP loop (50ms interval)
   useEffect(() => {
     if (!sessionId || session?.status === 'closed') return;
 
+    const period = Math.max(3, otpPeriod || 5);
+    const periodMs = period * 1000;
+
     const tick = () => {
-      const nowSec = Math.floor(Date.now() / 1000);
-      const currentWindow = Math.floor(nowSec / 5);
-      const remaining = 5 - (nowSec % 5);
+      const nowMs = Date.now();
+      const currentWindow = Math.floor(nowMs / periodMs);
+      const remainingMs = periodMs - (nowMs % periodMs);
+      const remainingSec = Math.ceil(remainingMs / 1000);
+      const progressFraction = (remainingMs / periodMs) * 100;
 
-      setSecondsLeft(remaining);
+      setSecondsLeft(remainingSec);
+      setSmoothProgress(progressFraction);
 
-      // Trigger fetch as soon as the 5-second TOTP window flips
+      // Trigger instant flip when TOTP window flips
       if (currentWindow !== lastWindowRef.current) {
         lastWindowRef.current = currentWindow;
+        if (nextOtpRef.current) {
+          setOtp(nextOtpRef.current);
+          setIsFlipping(true);
+          setTimeout(() => setIsFlipping(false), 240);
+        }
         fetchOtp(sessionId);
       }
     };
 
     tick();
-    tickerRef.current = setInterval(tick, 250);
+    tickerRef.current = setInterval(tick, 50);
 
     return () => {
       if (tickerRef.current) clearInterval(tickerRef.current);
     };
-  }, [sessionId, session?.status, fetchOtp]);
+  }, [sessionId, session?.status, fetchOtp, otpPeriod]);
 
-  // Initial load and Realtime subscriptions
+  // Initial load and Realtime subscriptions with clean unmount handling
   useEffect(() => {
+    let isCancelled = false;
+    let attendanceChannel: ReturnType<typeof supabase.channel> | null = null;
+    let sessionChannel: ReturnType<typeof supabase.channel> | null = null;
+
     params.then(async ({ id }) => {
+      if (isCancelled) return;
       setSessionId(id);
       setLoading(true);
-      await loadSession(id);
-      await fetchOtp(id);
+      await Promise.all([loadSession(id), fetchOtp(id)]);
+      if (isCancelled) return;
       setLoading(false);
 
       const uid = Math.random().toString(36).substring(2, 9);
 
       // Listen for new attendance check-ins
-      const attendanceChannel = supabase
+      attendanceChannel = supabase
         .channel(`present-att-${id}-${uid}`)
         .on('postgres_changes', {
           event: 'INSERT',
@@ -137,12 +172,12 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
           table: 'attendance',
           filter: `session_id=eq.${id}`,
         }, () => {
-          setAttendanceCount((prev) => prev + 1);
-        })
-        .subscribe();
+          if (!isCancelled) setAttendanceCount((prev) => prev + 1);
+        });
+      attendanceChannel.subscribe();
 
-      // Listen for session status updates (e.g. closed by admin)
-      const sessionChannel = supabase
+      // Listen for session status updates (e.g. closed by admin or period changed)
+      sessionChannel = supabase
         .channel(`present-ses-${id}-${uid}`)
         .on('postgres_changes', {
           event: 'UPDATE',
@@ -150,34 +185,32 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
           table: 'attendance_sessions',
           filter: `id=eq.${id}`,
         }, (payload) => {
-          if (payload.new) {
+          if (!isCancelled && payload.new) {
             setSession((prev) => prev ? { ...prev, ...(payload.new as any) } : null);
+            if ((payload.new as any).otp_period) {
+              setOtpPeriod((payload.new as any).otp_period);
+            }
           }
-        })
-        .subscribe();
-
-      return () => {
-        supabase.removeChannel(attendanceChannel);
-        supabase.removeChannel(sessionChannel);
-      };
+        });
+      sessionChannel.subscribe();
     });
+
+    return () => {
+      isCancelled = true;
+      if (attendanceChannel) supabase.removeChannel(attendanceChannel);
+      if (sessionChannel) supabase.removeChannel(sessionChannel);
+    };
   }, [params, loadSession, fetchOtp, supabase]);
 
   if (loading) {
     return (
       <AntdConfigProvider>
-        <div style={{
-          minHeight: '100vh',
-          background: '#0a0a14',
-          display: 'flex',
-          flexDirection: 'column',
-          alignItems: 'center',
-          justifyContent: 'center',
-        }}>
-          <Spin size="large" />
-          <Text style={{ color: 'rgba(255,255,255,0.5)', marginTop: 16 }}>
-            Connecting to Attendance Session…
-          </Text>
+        <div style={{ minHeight: '100vh', background: '#0a0a14', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+          <StylishLoader
+            message="Connecting to Attendance Screen..."
+            submessage="Synchronizing encryption keys and projector stream"
+            fullScreen
+          />
         </div>
       </AntdConfigProvider>
     );
@@ -205,7 +238,7 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
 
   const isClosed = session.status === 'closed';
   const formattedOtp = otp ? `${otp.slice(0, 3)} ${otp.slice(3)}` : '··· ···';
-  const progressRatio = Math.max(0, Math.min(1, secondsLeft / 5));
+  const progressRatio = Math.max(0, Math.min(1, secondsLeft / (otpPeriod || 5)));
   const isUrgent = secondsLeft <= 1;
 
   return (
@@ -384,7 +417,9 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
                 border: '1px solid rgba(255,255,255,0.06)',
                 backdropFilter: 'blur(20px)',
                 boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
-                transition: 'all 0.3s ease',
+                transition: 'all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                transform: isFlipping ? 'scale(0.95)' : 'scale(1)',
+                opacity: isFlipping ? 0.75 : 1,
               }}>
                 {formattedOtp}
               </div>
@@ -399,7 +434,7 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
                   fontSize: 16,
                 }}>
                   <span style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>
-                    Rotating in
+                    Rotating in ({otpPeriod}s cycle)
                   </span>
                   <span style={{
                     color: isUrgent ? '#f87171' : '#a5b4fc',
@@ -422,13 +457,13 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
                 }}>
                   <div style={{
                     height: '100%',
-                    width: `${progressRatio * 100}%`,
+                    width: `${smoothProgress}%`,
                     background: isUrgent
                       ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
                       : 'linear-gradient(90deg, #6366f1, #8b5cf6)',
                     borderRadius: 999,
-                    transition: 'width 1s linear, background 0.3s ease',
-                    boxShadow: isUrgent ? '0 0 12px #ef4444' : '0 0 12px #6366f1',
+                    transition: 'width 0.08s linear, background 0.3s ease',
+                    boxShadow: isUrgent ? '0 0 16px #ef4444' : '0 0 16px #6366f1',
                   }} />
                 </div>
               </div>

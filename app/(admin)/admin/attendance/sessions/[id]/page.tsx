@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Card, Typography, Button, Progress, Avatar, Tag, List,
-  Modal, message, Spin, Empty, Badge, Statistic, Row, Col, Space,
+  Modal, message, Spin, Empty, Badge, Statistic, Row, Col, Space, Select,
 } from 'antd';
 import {
   ArrowLeftOutlined, CloseCircleOutlined, ReloadOutlined,
@@ -15,6 +15,8 @@ import { createClient } from '@/lib/supabase/client';
 import dayjs from 'dayjs';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
 
+import StylishLoader from '@/components/StylishLoader';
+
 const { Title, Text } = Typography;
 
 export default function SessionOtpPage({ params }: { params: Promise<{ id: string }> }) {
@@ -22,14 +24,21 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
   const [session, setSession] = useState<AttendanceSession | null>(null);
   const [otp, setOtp] = useState('');
   const [secondsLeft, setSecondsLeft] = useState(5);
+  const [smoothProgress, setSmoothProgress] = useState(100);
+  const [isFlipping, setIsFlipping] = useState(false);
   const [attendance, setAttendance] = useState<Attendance[]>([]);
   const [totalStudents, setTotalStudents] = useState(0);
   const [loading, setLoading] = useState(true);
   const [closing, setClosing] = useState(false);
+  const [otpPeriod, setOtpPeriod] = useState(5);
+  const [updatingPeriod, setUpdatingPeriod] = useState(false);
+
   const router = useRouter();
   const supabase = createClient();
   const lastWindowRef = useRef<number>(-1);
   const tickerRef = useRef<NodeJS.Timeout | null>(null);
+  const nextOtpRef = useRef<string>('');
+  const isFetchingRef = useRef(false);
 
   // Load session data
   const loadSession = useCallback(async (id: string) => {
@@ -37,6 +46,9 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
       const res = await fetch(`/api/admin/sessions/${id}`);
       const data = await res.json();
       setSession(data.session);
+      if (data.session?.otp_period) {
+        setOtpPeriod(data.session.otp_period);
+      }
       setAttendance(data.attendance ?? []);
       setTotalStudents(data.totalStudents ?? 0);
     } catch (e) {
@@ -46,6 +58,8 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
 
   // Fetch current OTP from server
   const fetchOtp = useCallback(async (id: string) => {
+    if (isFetchingRef.current) return;
+    isFetchingRef.current = true;
     try {
       const res = await fetch(`/api/admin/sessions/${id}/otp?t=${Date.now()}`, {
         cache: 'no-store',
@@ -53,51 +67,96 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
       });
       if (res.ok) {
         const data = await res.json();
-        setOtp(data.otp);
+        setOtp((current) => current || data.otp);
+        if (data.next_otp) {
+          nextOtpRef.current = data.next_otp;
+        }
+        if (data.period) {
+          setOtpPeriod(data.period);
+        }
       }
     } catch (err) {
       console.error('Error fetching OTP:', err);
+    } finally {
+      isFetchingRef.current = false;
     }
   }, []);
 
-  // Continuous clock-synced OTP loop
+  const handleUpdatePeriod = async (newPeriod: number) => {
+    setUpdatingPeriod(true);
+    try {
+      const res = await fetch(`/api/admin/sessions/${sessionId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ otp_period: newPeriod }),
+      });
+      if (res.ok) {
+        setOtpPeriod(newPeriod);
+        message.success(`OTP rotation updated to ${newPeriod}s`);
+        fetchOtp(sessionId);
+      } else {
+        message.error('Failed to update rotation interval');
+      }
+    } finally {
+      setUpdatingPeriod(false);
+    }
+  };
+
+  // Continuous fluid clock-synced OTP loop (50ms interval for liquid-smooth progress)
   useEffect(() => {
     if (!sessionId || session?.status === 'closed') return;
 
+    const period = Math.max(3, otpPeriod || 5);
+    const periodMs = period * 1000;
+
     const tick = () => {
-      const nowSec = Math.floor(Date.now() / 1000);
-      const currentWindow = Math.floor(nowSec / 5);
-      const remaining = 5 - (nowSec % 5);
+      const nowMs = Date.now();
+      const currentWindow = Math.floor(nowMs / periodMs);
+      const remainingMs = periodMs - (nowMs % periodMs);
+      const remainingSec = Math.ceil(remainingMs / 1000);
+      const progressFraction = (remainingMs / periodMs) * 100;
 
-      setSecondsLeft(remaining);
+      setSecondsLeft(remainingSec);
+      setSmoothProgress(progressFraction);
 
-      // Trigger fetch as soon as window flips
+      // As soon as the TOTP window flips, immediately transition to next_otp with zero network lag
       if (currentWindow !== lastWindowRef.current) {
         lastWindowRef.current = currentWindow;
+        if (nextOtpRef.current) {
+          setOtp(nextOtpRef.current);
+          setIsFlipping(true);
+          setTimeout(() => setIsFlipping(false), 240);
+        }
         fetchOtp(sessionId);
       }
     };
 
     tick();
-    tickerRef.current = setInterval(tick, 250);
+    tickerRef.current = setInterval(tick, 50);
 
     return () => {
       if (tickerRef.current) clearInterval(tickerRef.current);
     };
-  }, [sessionId, session?.status, fetchOtp]);
+  }, [sessionId, session?.status, fetchOtp, otpPeriod]);
 
+  // Clean mount/unmount and Supabase Realtime subscriptions
   useEffect(() => {
+    let isCancelled = false;
+    let channel: ReturnType<typeof supabase.channel> | null = null;
+    let sessionUpdateChannel: ReturnType<typeof supabase.channel> | null = null;
+
     params.then(async ({ id }) => {
+      if (isCancelled) return;
       setSessionId(id);
       setLoading(true);
-      await loadSession(id);
-      await fetchOtp(id);
+      await Promise.all([loadSession(id), fetchOtp(id)]);
+      if (isCancelled) return;
       setLoading(false);
 
       const uid = Math.random().toString(36).substring(2, 9);
 
       // Supabase Realtime — listen for new attendance records
-      const channel = supabase
+      channel = supabase
         .channel(`session-${id}-${uid}`)
         .on('postgres_changes', {
           event: 'INSERT',
@@ -105,12 +164,34 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
           table: 'attendance',
           filter: `session_id=eq.${id}`,
         }, () => {
-          loadSession(id);
-        })
-        .subscribe();
+          if (!isCancelled) loadSession(id);
+        });
+      channel.subscribe();
 
-      return () => { supabase.removeChannel(channel); };
+      // Listen for session status updates
+      sessionUpdateChannel = supabase
+        .channel(`session-update-${id}-${uid}`)
+        .on('postgres_changes', {
+          event: 'UPDATE',
+          schema: 'public',
+          table: 'attendance_sessions',
+          filter: `id=eq.${id}`,
+        }, (payload) => {
+          if (!isCancelled && payload.new) {
+            setSession((prev) => prev ? { ...prev, ...(payload.new as any) } : null);
+            if ((payload.new as any).otp_period) {
+              setOtpPeriod((payload.new as any).otp_period);
+            }
+          }
+        });
+      sessionUpdateChannel.subscribe();
     });
+
+    return () => {
+      isCancelled = true;
+      if (channel) supabase.removeChannel(channel);
+      if (sessionUpdateChannel) supabase.removeChannel(sessionUpdateChannel);
+    };
   }, [params, loadSession, fetchOtp, supabase]);
 
   const handleClose = () => {
@@ -152,7 +233,17 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
     });
   };
 
-  if (loading) return <div style={{ textAlign: 'center', padding: 80 }}><Spin size="large" /></div>;
+  if (loading) {
+    return (
+      <AntdConfigProvider>
+        <StylishLoader
+          message="Connecting to attendance session..."
+          submessage="Synchronizing encryption keys and student roster"
+          minHeight="65vh"
+        />
+      </AntdConfigProvider>
+    );
+  }
   if (!session) return <Empty description="Session not found" />;
 
   const isClosed = session.status === 'closed';
@@ -235,26 +326,60 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                     lineHeight: 1,
                     marginBottom: 16,
                     textShadow: '0 0 40px rgba(99,102,241,0.5)',
+                    transition: 'all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
+                    transform: isFlipping ? 'scale(0.94)' : 'scale(1)',
+                    opacity: isFlipping ? 0.75 : 1,
                   }}>
                     {formattedOtp}
                   </div>
 
-                  <div style={{ marginBottom: 20 }}>
+                  <div style={{ marginBottom: 16 }}>
                     <Text type="secondary" style={{ fontSize: 15 }}>
                       Changes in{' '}
                       <Text style={{ color: secondsLeft <= 2 ? '#ef4444' : '#818cf8', fontWeight: 700 }}>
                         {secondsLeft}s
                       </Text>
+                      {' '}(every {otpPeriod}s)
                     </Text>
                   </div>
 
                   <Progress
-                    percent={(secondsLeft / 5) * 100}
+                    percent={smoothProgress}
                     showInfo={false}
                     strokeColor={secondsLeft <= 2 ? '#ef4444' : '#6366f1'}
                     railColor="rgba(255,255,255,0.1)"
-                    style={{ marginBottom: 32 }}
+                    style={{ marginBottom: 20 }}
                   />
+
+                  {/* Live interval adjustment */}
+                  <div style={{
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    gap: 10,
+                    background: 'rgba(255,255,255,0.04)',
+                    border: '1px solid rgba(255,255,255,0.08)',
+                    borderRadius: 12,
+                    padding: '6px 14px',
+                    marginBottom: 28,
+                  }}>
+                    <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 500 }}>
+                      Rotation Speed:
+                    </span>
+                    <Select
+                      size="small"
+                      value={otpPeriod}
+                      loading={updatingPeriod}
+                      onChange={handleUpdatePeriod}
+                      style={{ width: 125 }}
+                      options={[
+                        { label: '5s (Ultra)', value: 5 },
+                        { label: '10s (Standard)', value: 10 },
+                        { label: '15s (Relaxed)', value: 15 },
+                        { label: '30s (Slow)', value: 30 },
+                        { label: '60s (1 min)', value: 60 },
+                      ]}
+                    />
+                  </div>
                 </>
               )}
 

@@ -32,7 +32,7 @@ export async function POST(request: NextRequest) {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
 
-  const { class_id } = await request.json();
+  const { class_id, otp_period } = await request.json();
   if (!class_id) return NextResponse.json({ error: 'class_id required' }, { status: 400 });
 
   const admin = createAdminClient();
@@ -53,12 +53,14 @@ export async function POST(request: NextRequest) {
   }
 
   const otp_secret = generateSecret();
+  const period = Math.max(3, Math.min(120, Number(otp_period) || 5));
 
   const { data: session, error } = await admin
     .from('attendance_sessions')
     .insert({
       class_id,
       otp_secret,
+      otp_period: period,
       status: 'open',
       created_by: user.id,
     })

@@ -59,19 +59,39 @@ export async function POST(request: NextRequest) {
     }
 
     let authUserId = student.auth_user_id;
+    let existingAuthUser = null;
 
-    // 2. If auth_user_id already exists, update password
+    // Check if auth user already exists in Supabase Auth
     if (authUserId) {
+      const { data: userRes } = await admin.auth.admin.getUserById(authUserId);
+      existingAuthUser = userRes?.user ?? null;
+    }
+
+    if (!existingAuthUser) {
+      const { data: userList } = await admin.auth.admin.listUsers({ page: 1, perPage: 1000 });
+      existingAuthUser = userList?.users?.find(
+        (u: any) => u.email?.toLowerCase() === cleanEmail
+      ) ?? null;
+    }
+
+    if (existingAuthUser) {
+      // User exists in auth -> update password and ensure email is confirmed
+      authUserId = existingAuthUser.id;
       const { error: updateError } = await admin.auth.admin.updateUserById(authUserId, {
         password: password,
         email_confirm: true,
+        user_metadata: {
+          role: 'student',
+          name: student.name,
+          student_code: student.student_code,
+        },
       });
 
       if (updateError) {
         return NextResponse.json({ error: updateError.message }, { status: 500 });
       }
     } else {
-      // 3. If no auth_user_id linked yet, try creating new auth user
+      // User does not exist in auth -> create new
       const { data: newUser, error: createError } = await admin.auth.admin.createUser({
         email: cleanEmail,
         password: password,
@@ -84,40 +104,17 @@ export async function POST(request: NextRequest) {
       });
 
       if (createError) {
-        // If user already exists in Supabase Auth (e.g. created previously)
-        if (createError.message?.toLowerCase().includes('already') || createError.status === 422) {
-          // Find the existing auth user and update their password
-          const { data: userList } = await admin.auth.admin.listUsers();
-          const existingUser = userList?.users?.find(
-            (u: any) => u.email?.toLowerCase() === cleanEmail
-          );
-
-          if (existingUser) {
-            authUserId = existingUser.id;
-            await admin.auth.admin.updateUserById(existingUser.id, {
-              password: password,
-              email_confirm: true,
-            });
-          } else {
-            return NextResponse.json({ error: createError.message }, { status: 500 });
-          }
-        } else {
-          return NextResponse.json({ error: createError.message }, { status: 500 });
-        }
-      } else {
-        authUserId = newUser.user.id;
+        return NextResponse.json({ error: createError.message }, { status: 500 });
       }
 
-      // 4. Link auth_user_id to the students record
-      const { error: linkError } = await admin
-        .from('students')
-        .update({ auth_user_id: authUserId })
-        .eq('id', student.id);
-
-      if (linkError) {
-        return NextResponse.json({ error: linkError.message }, { status: 500 });
-      }
+      authUserId = newUser.user.id;
     }
+
+    // Always ensure student record in public.students links to auth_user_id
+    await admin
+      .from('students')
+      .update({ auth_user_id: authUserId })
+      .eq('id', student.id);
 
     return NextResponse.json({
       success: true,

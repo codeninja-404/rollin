@@ -2,6 +2,13 @@ import { createServerClient } from '@supabase/ssr';
 import { NextResponse, type NextRequest } from 'next/server';
 
 export async function proxy(request: NextRequest) {
+  const { pathname } = request.nextUrl;
+
+  // Let API requests pass straight through to their route handlers with zero middleware DB latency
+  if (pathname.startsWith('/api')) {
+    return NextResponse.next({ request });
+  }
+
   let supabaseResponse = NextResponse.next({ request });
 
   const supabase = createServerClient(
@@ -27,8 +34,6 @@ export async function proxy(request: NextRequest) {
 
   // Refresh session
   const { data: { user } } = await supabase.auth.getUser();
-
-  const { pathname } = request.nextUrl;
 
   // Redirect unauthenticated users away from protected routes
   if (!user) {

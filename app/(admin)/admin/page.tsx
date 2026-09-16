@@ -12,6 +12,7 @@ import {
 import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
+import StylishLoader from '@/components/StylishLoader';
 
 dayjs.extend(relativeTime);
 
@@ -140,9 +141,10 @@ export default function AdminDashboard() {
         </div>
 
         {loading ? (
-          <div style={{ textAlign: 'center', padding: 80 }}>
-            <Spin size="large" />
-          </div>
+          <StylishLoader
+            message="Loading dashboard metrics..."
+            submessage="Gathering live attendance sessions and student data"
+          />
         ) : (
           <>
             {/* Stat cards */}

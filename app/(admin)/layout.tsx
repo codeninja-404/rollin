@@ -188,7 +188,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
             body: { padding: 0, background: '#FFFFFF' },
             header: { display: 'none' },
           }}
-          width={240}
+          size={240}
         >
           {renderBrandHeader(false)}
           <Menu

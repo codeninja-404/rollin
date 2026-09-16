@@ -50,9 +50,8 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
         setOtpPeriod(data.session.otp_period);
       }
       setAttendance(data.attendance ?? []);
-      setTotalStudents(data.totalStudents ?? 0);
-    } catch (e) {
-      console.error('Failed to load session', e);
+    } catch {
+      // Ignore network abort/fetch error
     }
   }, []);
 
@@ -75,8 +74,8 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
           setOtpPeriod(data.period);
         }
       }
-    } catch (err) {
-      console.error('Error fetching OTP:', err);
+    } catch {
+      // Ignore fetch error
     } finally {
       isFetchingRef.current = false;
     }

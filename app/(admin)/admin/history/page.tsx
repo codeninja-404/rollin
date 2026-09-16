@@ -303,7 +303,7 @@ export default function HistoryPage() {
           }
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
-          width={400}
+          size={400}
           styles={{
             body: { padding: 20, background: '#FFFFFF' },
             header: { background: '#FFFFFF', borderBottom: '1px solid #E4E4E4' },

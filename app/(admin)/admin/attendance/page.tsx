@@ -385,7 +385,7 @@ export default function AttendancePage() {
                 }}
                 style={{ width: '100%' }}
               >
-                <Space direction="vertical" style={{ width: '100%' }} size={10}>
+                <Space orientation="vertical" style={{ width: '100%' }} size={10}>
                   <Radio value={5} style={{ color: '#111111' }}>
                     <strong>5 Seconds</strong> <Tag color="red" style={{ marginLeft: 8, borderRadius: 0 }}>Ultra-Fast / Anti-Sharing</Tag>
                   </Radio>
@@ -470,7 +470,7 @@ export default function AttendancePage() {
               onChange={(e) => setDefaultPeriod(Number(e.target.value))}
               style={{ width: '100%', marginBottom: 16 }}
             >
-              <Space direction="vertical" style={{ width: '100%' }} size={10}>
+              <Space orientation="vertical" style={{ width: '100%' }} size={10}>
                 <Radio value={5} style={{ color: '#111111' }}>5 Seconds (Ultra-Fast)</Radio>
                 <Radio value={10} style={{ color: '#111111' }}>10 Seconds (Standard Classroom)</Radio>
                 <Radio value={15} style={{ color: '#111111' }}>15 Seconds (Relaxed)</Radio>

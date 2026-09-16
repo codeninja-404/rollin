@@ -2,13 +2,14 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Card, Table, Button, Checkbox, Typography, Input, Avatar,
+  Card, Button, Checkbox, Typography, Input, Avatar,
   message,
 } from 'antd';
 import { ArrowLeftOutlined, SearchOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import type { Student, ClassStudent } from '@/lib/types';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
+import SharedTable from '@/components/SharedTable';
 
 const { Title, Text } = Typography;
 
@@ -181,14 +182,14 @@ export default function AssignStudentsPage({ params }: { params: Promise<{ id: s
           }}
           styles={{ body: { padding: 0 } }}
         >
-          <Table
+          <SharedTable
             dataSource={filtered}
             columns={columns}
             rowKey="id"
             loading={loading}
             size="small"
             scroll={{ x: 710 }}
-            pagination={{ pageSize: 20, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
+            pagination={{ pageSize: 20, showSizeChanger: false }}
             rowClassName={(s) => assigned.has(s.id) ? 'bg-blue-50/50' : ''}
           />
         </Card>

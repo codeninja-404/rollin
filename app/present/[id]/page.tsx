@@ -78,9 +78,8 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
         setOtpPeriod(data.session.otp_period);
       }
       setAttendanceCount((data.attendance ?? []).length);
-      setTotalStudents(data.totalStudents ?? 0);
-    } catch (e) {
-      console.error('Failed to load session', e);
+    } catch {
+      // Ignore network abort/fetch error
     }
   }, []);
 
@@ -103,8 +102,8 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
           setOtpPeriod(data.period);
         }
       }
-    } catch (e) {
-      console.error('Failed to fetch OTP', e);
+    } catch {
+      // Ignore fetch error
     } finally {
       isFetchingRef.current = false;
     }

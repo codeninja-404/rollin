@@ -221,15 +221,15 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
       <AntdConfigProvider>
         <div style={{
           minHeight: '100vh',
-          background: '#0a0a14',
+          background: '#FAFAFA',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
-          color: '#fff',
+          color: '#111111',
         }}>
-          <CloseCircleOutlined style={{ fontSize: 48, color: '#ef4444', marginBottom: 16 }} />
-          <Title level={3} style={{ color: '#fff' }}>Session Not Found</Title>
+          <CloseCircleOutlined style={{ fontSize: 48, color: '#DC2626', marginBottom: 16 }} />
+          <Title level={3} style={{ color: '#111111' }}>Session Not Found</Title>
           <Text type="secondary">This attendance session does not exist or has been removed.</Text>
         </div>
       </AntdConfigProvider>
@@ -238,7 +238,6 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
 
   const isClosed = session.status === 'closed';
   const formattedOtp = otp ? `${otp.slice(0, 3)} ${otp.slice(3)}` : '··· ···';
-  const progressRatio = Math.max(0, Math.min(1, secondsLeft / (otpPeriod || 5)));
   const isUrgent = secondsLeft <= 1;
 
   return (
@@ -246,8 +245,8 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
       <div style={{
         minHeight: '100vh',
         width: '100vw',
-        background: 'radial-gradient(ellipse at 50% 20%, #171836 0%, #0c0d1e 50%, #06070e 100%)',
-        color: '#fff',
+        background: '#FAFAFA',
+        color: '#111111',
         display: 'flex',
         flexDirection: 'column',
         justifyContent: 'space-between',
@@ -257,24 +256,6 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
         userSelect: 'none',
         position: 'relative',
       }}>
-        {/* Background ambient lighting effects */}
-        <div style={{
-          position: 'absolute',
-          top: '20%',
-          left: '50%',
-          transform: 'translate(-50%, -50%)',
-          width: '700px',
-          height: '400px',
-          background: isClosed
-            ? 'radial-gradient(circle, rgba(239, 68, 68, 0.08) 0%, transparent 70%)'
-            : isUrgent
-              ? 'radial-gradient(circle, rgba(245, 158, 11, 0.15) 0%, transparent 70%)'
-              : 'radial-gradient(circle, rgba(99, 102, 241, 0.22) 0%, transparent 70%)',
-          filter: 'blur(60px)',
-          pointerEvents: 'none',
-          transition: 'all 0.5s ease',
-        }} />
-
         {/* Top Header Bar */}
         <div style={{
           display: 'flex',
@@ -287,24 +268,23 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
             <div style={{
               width: 44,
               height: 44,
-              borderRadius: 12,
-              background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
+              borderRadius: 0,
+              background: '#2563EB',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               fontWeight: 800,
               fontSize: 22,
-              color: '#fff',
-              boxShadow: '0 4px 20px rgba(99,102,241,0.4)',
+              color: '#FFFFFF',
             }}>
               R
             </div>
             <div>
               <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                <Title level={4} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>
+                <Title level={4} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>
                   {(session.class as any)?.name ?? 'Live Attendance Session'}
                 </Title>
-                <Tag color="#4f46e5" style={{ borderRadius: 6, fontWeight: 600, border: 'none' }}>
+                <Tag style={{ borderRadius: 0, fontWeight: 600, background: '#EFF6FF', color: '#2563EB', border: '1px solid #BFDBFE' }}>
                   {(session.class as any)?.course_code ?? 'CLASS'}
                 </Tag>
               </div>
@@ -315,20 +295,19 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
           </div>
 
           {/* Right: Clock + Fullscreen Toggle */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{
-              background: 'rgba(255,255,255,0.06)',
-              backdropFilter: 'blur(10px)',
+              background: '#FFFFFF',
               padding: '8px 18px',
-              borderRadius: 12,
-              border: '1px solid rgba(255,255,255,0.08)',
+              borderRadius: 0,
+              border: '1px solid #E4E4E4',
               fontFamily: 'monospace',
               fontSize: 16,
               letterSpacing: 1,
-              color: '#e2e8f0',
+              color: '#111111',
               fontWeight: 600,
             }}>
-              <ClockCircleOutlined style={{ marginRight: 8, color: '#818cf8' }} />
+              <ClockCircleOutlined style={{ marginRight: 8, color: '#2563EB' }} />
               {currentTime}
             </div>
 
@@ -337,15 +316,15 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
               icon={isFullscreen ? <FullscreenExitOutlined /> : <FullscreenOutlined />}
               onClick={toggleFullscreen}
               style={{
-                color: '#fff',
-                background: 'rgba(255,255,255,0.08)',
-                borderRadius: 12,
+                color: '#111111',
+                background: '#FFFFFF',
+                borderRadius: 0,
                 height: 42,
                 width: 42,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                border: '1px solid rgba(255,255,255,0.1)',
+                border: '1px solid #E4E4E4',
               }}
               title={isFullscreen ? 'Exit Fullscreen' : 'Enter Fullscreen'}
             />
@@ -369,29 +348,28 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
                 display: 'inline-flex',
                 alignItems: 'center',
                 gap: 10,
-                background: 'rgba(16, 185, 129, 0.12)',
-                border: '1px solid rgba(16, 185, 129, 0.3)',
+                background: '#F0FDF4',
+                border: '1px solid #BBF7D0',
                 padding: '8px 22px',
-                borderRadius: 999,
+                borderRadius: 0,
                 marginBottom: 28,
               }}>
                 <span style={{
-                  width: 10,
-                  height: 10,
+                  width: 8,
+                  height: 8,
                   borderRadius: '50%',
-                  background: '#10b981',
-                  boxShadow: '0 0 12px #10b981',
+                  background: '#16A34A',
                   display: 'inline-block',
                 }} />
-                <span style={{ color: '#34d399', fontWeight: 700, fontSize: 15, letterSpacing: 1.5, textTransform: 'uppercase' }}>
+                <span style={{ color: '#16A34A', fontWeight: 700, fontSize: 14, letterSpacing: 1, textTransform: 'uppercase' }}>
                   Live Attendance Active
                 </span>
               </div>
 
               {/* Sub-label */}
               <div style={{
-                color: 'rgba(255,255,255,0.6)',
-                fontSize: 18,
+                color: '#6B6B6B',
+                fontSize: 16,
                 letterSpacing: 2,
                 textTransform: 'uppercase',
                 fontWeight: 600,
@@ -407,18 +385,13 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
                 fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
                 letterSpacing: 'clamp(12px, 2.5vw, 32px)',
                 lineHeight: 1,
-                color: '#ffffff',
-                textShadow: isUrgent
-                  ? '0 0 50px rgba(239, 68, 68, 0.6), 0 0 100px rgba(239, 68, 68, 0.3)'
-                  : '0 0 60px rgba(99, 102, 241, 0.6), 0 0 120px rgba(139, 92, 246, 0.3)',
-                padding: '16px 36px',
-                borderRadius: 24,
-                background: 'rgba(255,255,255,0.02)',
-                border: '1px solid rgba(255,255,255,0.06)',
-                backdropFilter: 'blur(20px)',
-                boxShadow: '0 20px 60px rgba(0,0,0,0.5)',
+                color: '#111111',
+                padding: '24px 48px',
+                borderRadius: 0,
+                background: '#FFFFFF',
+                border: '1px solid #E4E4E4',
                 transition: 'all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                transform: isFlipping ? 'scale(0.95)' : 'scale(1)',
+                transform: isFlipping ? 'scale(0.96)' : 'scale(1)',
                 opacity: isFlipping ? 0.75 : 1,
               }}>
                 {formattedOtp}
@@ -431,15 +404,15 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
                   justifyContent: 'space-between',
                   alignItems: 'center',
                   marginBottom: 10,
-                  fontSize: 16,
+                  fontSize: 15,
                 }}>
-                  <span style={{ color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>
+                  <span style={{ color: '#6B6B6B', fontWeight: 500 }}>
                     Rotating in ({otpPeriod}s cycle)
                   </span>
                   <span style={{
-                    color: isUrgent ? '#f87171' : '#a5b4fc',
+                    color: isUrgent ? '#DC2626' : '#2563EB',
                     fontWeight: 800,
-                    fontSize: 20,
+                    fontSize: 18,
                     fontFamily: 'monospace',
                   }}>
                     {secondsLeft}s
@@ -447,23 +420,18 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
                 </div>
 
                 <div style={{
-                  height: 10,
+                  height: 8,
                   width: '100%',
-                  background: 'rgba(255,255,255,0.08)',
-                  borderRadius: 999,
+                  background: '#E4E4E4',
+                  borderRadius: 0,
                   overflow: 'hidden',
-                  padding: 2,
-                  boxSizing: 'border-box',
                 }}>
                   <div style={{
                     height: '100%',
                     width: `${smoothProgress}%`,
-                    background: isUrgent
-                      ? 'linear-gradient(90deg, #f59e0b, #ef4444)'
-                      : 'linear-gradient(90deg, #6366f1, #8b5cf6)',
-                    borderRadius: 999,
-                    transition: 'width 0.08s linear, background 0.3s ease',
-                    boxShadow: isUrgent ? '0 0 16px #ef4444' : '0 0 16px #6366f1',
+                    background: isUrgent ? '#DC2626' : '#2563EB',
+                    borderRadius: 0,
+                    transition: 'width 0.08s linear',
                   }} />
                 </div>
               </div>
@@ -471,24 +439,24 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
           ) : (
             <div style={{ padding: '60px 40px' }}>
               <div style={{
-                width: 90,
-                height: 90,
-                borderRadius: '50%',
-                background: 'rgba(239, 68, 68, 0.12)',
-                border: '2px solid rgba(239, 68, 68, 0.3)',
+                width: 80,
+                height: 80,
+                borderRadius: 0,
+                background: '#FEF2F2',
+                border: '1px solid #FECACA',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 margin: '0 auto 24px',
-                fontSize: 42,
-                color: '#ef4444',
+                fontSize: 36,
+                color: '#DC2626',
               }}>
                 <CloseCircleOutlined />
               </div>
-              <Title level={1} style={{ color: '#fff', margin: 0, fontWeight: 800 }}>
+              <Title level={1} style={{ color: '#111111', margin: 0, fontWeight: 800 }}>
                 Attendance Closed
               </Title>
-              <Text type="secondary" style={{ fontSize: 20, marginTop: 12, display: 'block' }}>
+              <Text type="secondary" style={{ fontSize: 18, marginTop: 12, display: 'block' }}>
                 This attendance session has ended. Submissions are no longer accepted.
               </Text>
             </div>
@@ -502,11 +470,10 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
           justifyContent: 'space-between',
           flexWrap: 'wrap',
           gap: 20,
-          background: 'rgba(255,255,255,0.03)',
-          border: '1px solid rgba(255,255,255,0.08)',
-          borderRadius: 20,
+          background: '#FFFFFF',
+          border: '1px solid #E4E4E4',
+          borderRadius: 0,
           padding: '16px 28px',
-          backdropFilter: 'blur(12px)',
           zIndex: 10,
         }}>
           {/* Network reminder */}
@@ -514,18 +481,18 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
             <div style={{
               width: 38,
               height: 38,
-              borderRadius: 10,
-              background: 'rgba(59, 130, 246, 0.15)',
+              borderRadius: 0,
+              background: '#EFF6FF',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
-              color: '#60a5fa',
+              color: '#2563EB',
               fontSize: 18,
             }}>
               <WifiOutlined />
             </div>
             <div>
-              <div style={{ color: '#fff', fontWeight: 600, fontSize: 15 }}>
+              <div style={{ color: '#111111', fontWeight: 600, fontSize: 15 }}>
                 Campus Wi-Fi Required
               </div>
               <Text type="secondary" style={{ fontSize: 13 }}>
@@ -537,22 +504,22 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
           {/* Live Check-in Stats */}
           <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
             <div style={{ textAlign: 'right' }}>
-              <div style={{ fontSize: 13, color: 'rgba(255,255,255,0.5)', fontWeight: 500 }}>
+              <div style={{ fontSize: 12, color: '#6B6B6B', fontWeight: 600 }}>
                 SUBMITTED ATTENDANCE
               </div>
               <div style={{
-                fontSize: 26,
+                fontSize: 24,
                 fontWeight: 800,
-                color: '#34d399',
+                color: '#16A34A',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'flex-end',
                 gap: 6,
               }}>
-                <CheckCircleFilled style={{ fontSize: 20 }} />
+                <CheckCircleFilled style={{ fontSize: 18 }} />
                 <span>{attendanceCount}</span>
                 {totalStudents > 0 && (
-                  <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 18, fontWeight: 500 }}>
+                  <span style={{ color: '#6B6B6B', fontSize: 16, fontWeight: 500 }}>
                     / {totalStudents}
                   </span>
                 )}

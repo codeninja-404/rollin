@@ -9,6 +9,7 @@ export function OrbitalSpinner({ size = 44 }: { size?: number }) {
   const strokeWidth = size <= 32 ? 2.5 : 3.5;
   return (
     <div
+      className="orbital-spinner"
       style={{
         position: 'relative',
         width: size,
@@ -21,6 +22,7 @@ export function OrbitalSpinner({ size = 44 }: { size?: number }) {
     >
       {/* Ambient background glow */}
       <div
+        className="orbital-ring"
         style={{
           position: 'absolute',
           width: size * 1.5,
@@ -34,16 +36,18 @@ export function OrbitalSpinner({ size = 44 }: { size?: number }) {
 
       {/* Outer subtle track ring */}
       <div
+        className="orbital-ring"
         style={{
           position: 'absolute',
           inset: 0,
           borderRadius: '50%',
-          border: `${strokeWidth}px solid rgba(255, 255, 255, 0.08)`,
+          border: `${strokeWidth}px solid rgba(0, 0, 0, 0.08)`,
         }}
       />
 
       {/* Spinning Gradient Arc */}
       <div
+        className="orbital-ring"
         style={{
           position: 'absolute',
           inset: 0,
@@ -59,6 +63,7 @@ export function OrbitalSpinner({ size = 44 }: { size?: number }) {
       {/* Counter-spinning inner accent */}
       {size > 28 && (
         <div
+          className="orbital-ring"
           style={{
             position: 'absolute',
             width: size * 0.55,
@@ -75,6 +80,7 @@ export function OrbitalSpinner({ size = 44 }: { size?: number }) {
 
       {/* Center glowing core dot */}
       <div
+        className="orbital-ring"
         style={{
           width: size <= 32 ? 6 : 8,
           height: size <= 32 ? 6 : 8,
@@ -129,7 +135,7 @@ export default function StylishLoader({
       {message && (
         <Text
           style={{
-            color: 'rgba(255, 255, 255, 0.92)',
+            color: '#111111',
             fontWeight: 600,
             fontSize: size === 'small' ? 13 : 14,
             letterSpacing: '0.015em',
@@ -147,7 +153,7 @@ export default function StylishLoader({
           style={{
             fontSize: 12,
             marginTop: 6,
-            color: 'rgba(255, 255, 255, 0.45)',
+            color: '#6B6B6B',
             textAlign: 'center',
             maxWidth: 340,
             lineHeight: 1.4,

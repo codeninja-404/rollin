@@ -1,11 +1,12 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Card, Table, Typography, Tag, Tooltip } from 'antd';
+import { Card, Typography, Tag, Tooltip } from 'antd';
 import type { ColumnsType } from 'antd/es/table';
 import type { AuditLog } from '@/lib/types';
 import dayjs from 'dayjs';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
+import SharedTable from '@/components/SharedTable';
 
 const { Title, Text } = Typography;
 
@@ -44,10 +45,11 @@ export default function AuditPage() {
     {
       title: 'Action',
       dataIndex: 'action',
+      width: 160,
       render: (action: string) => (
         <Tag
           color={actionColors[action] ?? 'default'}
-          style={{ borderRadius: 6, fontFamily: 'monospace', fontSize: 11 }}
+          style={{ borderRadius: 0, fontFamily: 'monospace', fontSize: 11 }}
         >
           {action}
         </Tag>
@@ -56,6 +58,7 @@ export default function AuditPage() {
     {
       title: 'Entity',
       key: 'entity',
+      width: 160,
       render: (_, log) => (
         log.entity ? (
           <Text type="secondary" style={{ fontSize: 12 }}>
@@ -68,6 +71,7 @@ export default function AuditPage() {
     {
       title: 'IP',
       dataIndex: 'ip_address',
+      width: 130,
       render: (ip: string) => (
         <Text type="secondary" style={{ fontSize: 12, fontFamily: 'monospace' }}>{ip ?? '—'}</Text>
       ),
@@ -75,6 +79,7 @@ export default function AuditPage() {
     {
       title: 'Metadata',
       dataIndex: 'metadata',
+      width: 90,
       render: (meta: any) => meta ? (
         <Tooltip title={<pre style={{ fontSize: 11 }}>{JSON.stringify(meta, null, 2)}</pre>}>
           <Text type="secondary" style={{ fontSize: 11, cursor: 'pointer', textDecoration: 'underline dotted' }}>
@@ -86,6 +91,7 @@ export default function AuditPage() {
     {
       title: 'Time',
       dataIndex: 'created_at',
+      width: 180,
       render: (v: string) => (
         <Text type="secondary" style={{ fontSize: 12 }}>
           {dayjs(v).format('MMM D, YYYY h:mm:ss A')}
@@ -98,26 +104,26 @@ export default function AuditPage() {
     <AntdConfigProvider>
       <div>
         <div style={{ marginBottom: 24 }}>
-          <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>Audit Logs</Title>
+          <Title level={2} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>Audit Logs</Title>
           <Text type="secondary">System activity trail</Text>
         </div>
 
         <Card
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 14,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
             overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
-          <Table
+          <SharedTable
             dataSource={logs}
             columns={columns}
             rowKey="id"
             loading={loading}
-            size="small"
-            pagination={{ pageSize: 20, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
+            scroll={{ x: 720 }}
+            pagination={{ pageSize: 20, showSizeChanger: false }}
             locale={{ emptyText: 'No audit logs yet' }}
           />
         </Card>

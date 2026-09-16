@@ -45,16 +45,18 @@ const menuItems: MenuProps['items'] = [
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const [collapsed, setCollapsed] = useState(false);
   const [isMobile, setIsMobile] = useState(false);
+  const [mounted, setMounted] = useState(false);
   const [mobileDrawerOpen, setMobileDrawerOpen] = useState(false);
+  const [openKeys, setOpenKeys] = useState<string[]>(['attendance-group']);
   const pathname = usePathname();
   const router = useRouter();
   const supabase = createClient();
 
   useEffect(() => {
+    setMounted(true);
     const checkMobile = () => {
       const mobile = window.innerWidth < 768;
       setIsMobile(mobile);
-      if (mobile) setCollapsed(true);
     };
     checkMobile();
     window.addEventListener('resize', checkMobile);
@@ -96,126 +98,143 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     }
   };
 
-  const brandHeader = (
-    <div style={{
-      height: 64,
-      display: 'flex',
-      alignItems: 'center',
-      padding: '0 20px',
-      borderBottom: '1px solid rgba(255,255,255,0.06)',
-      gap: 12,
-      overflow: 'hidden',
-    }}>
-      <div style={{
-        width: 36,
-        height: 36,
-        borderRadius: 10,
-        background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+  const renderBrandHeader = (isCollapsed: boolean) => (
+    <div
+      style={{
+        height: 56,
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        flexShrink: 0,
-        boxShadow: '0 4px 12px rgba(99,102,241,0.4)',
-      }}>
-        <CheckSquareOutlined style={{ color: '#fff', fontSize: 18 }} />
+        justifyContent: isCollapsed ? 'center' : 'flex-start',
+        padding: isCollapsed ? '0' : '0 16px',
+        borderBottom: '1px solid #E4E4E4',
+        gap: 10,
+        overflow: 'hidden',
+      }}
+    >
+      <div
+        style={{
+          width: 30,
+          height: 30,
+          background: '#2563EB',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          flexShrink: 0,
+          color: '#FFFFFF',
+          fontWeight: 700,
+          fontSize: 15,
+        }}
+      >
+        R
       </div>
-      <Text strong style={{ color: '#fff', fontSize: 18, letterSpacing: -0.5 }}>
-        Rollin
-      </Text>
+      {!isCollapsed && (
+        <Text strong style={{ color: '#111111', fontSize: 16, letterSpacing: -0.3, whiteSpace: 'nowrap' }}>
+          Rollin
+        </Text>
+      )}
     </div>
   );
 
   return (
     <AntdConfigProvider>
-      <Layout style={{ minHeight: '100vh', background: '#0d0d1a' }}>
-        {/* Desktop Sidebar */}
-        {!isMobile && (
+      <Layout style={{ minHeight: '100vh', background: '#FAFAFA' }}>
+        {/* Desktop Sidebar — Hidden on mobile via CSS class .desktop-sider */}
+        {(!mounted || !isMobile) && (
           <Sider
+            className="desktop-sider"
             collapsed={collapsed}
             onCollapse={setCollapsed}
-            width={240}
-            collapsedWidth={72}
+            width={220}
+            collapsedWidth={64}
             style={{
-              background: 'linear-gradient(180deg, #12122a 0%, #0d0d1a 100%)',
-              borderRight: '1px solid rgba(255,255,255,0.06)',
+              background: '#FFFFFF',
+              borderRight: '1px solid #E4E4E4',
               position: 'fixed',
               left: 0,
               top: 0,
               bottom: 0,
               zIndex: 100,
-              overflow: 'auto',
+              height: '100vh',
             }}
           >
-            {brandHeader}
+            {renderBrandHeader(collapsed)}
 
-            <Menu
-              mode="inline"
-              selectedKeys={[selectedKey]}
-              defaultOpenKeys={['attendance-group']}
-              items={menuItems}
-              onClick={({ key }) => handleMenuClick(key)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: '12px 8px',
-              }}
-              theme="dark"
-            />
+            <div style={{ height: 'calc(100vh - 56px)', overflowY: 'auto', overflowX: 'hidden' }}>
+              <Menu
+                mode="inline"
+                selectedKeys={[selectedKey]}
+                openKeys={collapsed ? [] : openKeys}
+                onOpenChange={(keys) => {
+                  if (!collapsed) setOpenKeys(keys as string[]);
+                }}
+                items={menuItems}
+                onClick={({ key }) => handleMenuClick(key)}
+                style={{
+                  background: 'transparent',
+                  border: 'none',
+                  padding: '8px 4px',
+                }}
+              />
+            </div>
           </Sider>
         )}
 
         {/* Mobile Navigation Drawer */}
-        {isMobile && (
-          <Drawer
-            placement="left"
-            open={mobileDrawerOpen}
-            onClose={() => setMobileDrawerOpen(false)}
-            styles={{
-              body: { padding: 0, background: '#12122a' },
-              header: { display: 'none' },
+        <Drawer
+          placement="left"
+          open={mobileDrawerOpen}
+          onClose={() => setMobileDrawerOpen(false)}
+          styles={{
+            body: { padding: 0, background: '#FFFFFF' },
+            header: { display: 'none' },
+          }}
+          width={240}
+        >
+          {renderBrandHeader(false)}
+          <Menu
+            mode="inline"
+            selectedKeys={[selectedKey]}
+            defaultOpenKeys={['attendance-group']}
+            items={menuItems}
+            onClick={({ key }) => handleMenuClick(key)}
+            style={{
+              background: 'transparent',
+              border: 'none',
+              padding: '8px 4px',
             }}
-            width={260}
-          >
-            {brandHeader}
-            <Menu
-              mode="inline"
-              selectedKeys={[selectedKey]}
-              defaultOpenKeys={['attendance-group']}
-              items={menuItems}
-              onClick={({ key }) => handleMenuClick(key)}
-              style={{
-                background: 'transparent',
-                border: 'none',
-                padding: '12px 8px',
-              }}
-              theme="dark"
-            />
-          </Drawer>
-        )}
+          />
+        </Drawer>
 
-        {/* Main content */}
-        <Layout style={{
-          marginLeft: isMobile ? 0 : collapsed ? 72 : 240,
-          transition: 'margin-left 0.2s',
-          background: '#0d0d1a',
-          minWidth: 0,
-        }}>
+        {/* Main Content Area */}
+        <Layout
+          className="admin-main-layout"
+          style={{
+            marginLeft: mounted ? (isMobile ? 0 : collapsed ? 64 : 220) : undefined,
+            transition: mounted ? 'margin-left 0.2s cubic-bezier(0.4, 0, 0.2, 1)' : 'none',
+            background: '#FAFAFA',
+            minWidth: 0,
+            minHeight: '100vh',
+          }}
+        >
           {/* Header */}
-          <Header style={{
-            position: 'sticky',
-            top: 0,
-            zIndex: 99,
-            background: 'rgba(13,13,26,0.85)',
-            backdropFilter: 'blur(12px)',
-            borderBottom: '1px solid rgba(255,255,255,0.06)',
-            padding: isMobile ? '0 16px' : '0 24px',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            height: 64,
-          }}>
+          <Header
+            style={{
+              position: 'sticky',
+              top: 0,
+              zIndex: 99,
+              background: '#FFFFFF',
+              borderBottom: '1px solid #E4E4E4',
+              padding: isMobile ? '0 16px' : '0 20px',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'space-between',
+              height: 56,
+              lineHeight: '56px',
+            }}
+          >
             <Button
               type="text"
+              aria-label="Toggle navigation menu"
               icon={
                 isMobile ? (
                   <MenuOutlined />
@@ -232,38 +251,43 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                   setCollapsed(!collapsed);
                 }
               }}
-              style={{ color: 'rgba(255,255,255,0.8)', fontSize: 18 }}
+              style={{ color: '#111111', fontSize: 16 }}
             />
 
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
               <Dropdown menu={{ items: userMenu }} placement="bottomRight" trigger={['click']}>
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 8,
-                  cursor: 'pointer',
-                  padding: '5px 10px',
-                  borderRadius: 10,
-                  background: 'rgba(255,255,255,0.05)',
-                  border: '1px solid rgba(255,255,255,0.08)',
-                }}>
+                <div
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: 8,
+                    cursor: 'pointer',
+                    padding: '4px 10px',
+                    background: '#F4F4F5',
+                    border: '1px solid #E4E4E4',
+                  }}
+                >
                   <Avatar
-                    size={28}
-                    style={{ background: 'linear-gradient(135deg, #6366f1, #8b5cf6)' }}
+                    size={22}
+                    style={{ background: '#2563EB', color: '#FFFFFF', fontSize: 11 }}
                     icon={<UserOutlined />}
                   />
-                  <Text style={{ color: 'rgba(255,255,255,0.8)', fontSize: 13 }}>Admin</Text>
+                  <Text style={{ color: '#111111', fontSize: 12, fontWeight: 500 }}>Admin</Text>
                 </div>
               </Dropdown>
             </div>
           </Header>
 
-          {/* Page content */}
-          <Content style={{
-            padding: isMobile ? '16px' : '24px',
-            minHeight: 'calc(100vh - 64px)',
-            overflowX: 'hidden',
-          }}>
+          {/* Page Content */}
+          <Content
+            style={{
+              padding: isMobile ? '16px' : '24px',
+              minHeight: 'calc(100vh - 56px)',
+              background: '#FAFAFA',
+              minWidth: 0,
+              overflowX: 'auto',
+            }}
+          >
             {children}
           </Content>
         </Layout>

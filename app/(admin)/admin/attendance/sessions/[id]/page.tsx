@@ -260,7 +260,7 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
             type="text"
             icon={<ArrowLeftOutlined />}
             onClick={() => router.push('/admin/attendance')}
-            style={{ color: 'rgba(255,255,255,0.6)' }}
+            style={{ color: '#111111', borderRadius: 0 }}
           >
             Back
           </Button>
@@ -271,12 +271,11 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
               icon={<FundProjectionScreenOutlined />}
               onClick={() => window.open(`/present/${sessionId}`, '_blank')}
               style={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                border: 'none',
-                borderRadius: 10,
-                height: 38,
+                background: '#2563EB',
+                borderColor: '#2563EB',
+                borderRadius: 0,
+                height: 36,
                 fontWeight: 600,
-                boxShadow: '0 4px 14px rgba(99,102,241,0.3)',
               }}
             >
               Share Screen (Projector View)
@@ -289,9 +288,9 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
           <Col xs={24} lg={12}>
             <Card
               style={{
-                background: 'linear-gradient(135deg, rgba(99,102,241,0.15) 0%, rgba(139,92,246,0.1) 100%)',
-                border: '1px solid rgba(99,102,241,0.3)',
-                borderRadius: 20,
+                background: '#FFFFFF',
+                border: '1px solid #E4E4E4',
+                borderRadius: 0,
                 textAlign: 'center',
                 height: '100%',
               }}
@@ -299,17 +298,17 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
             >
               {/* Class info */}
               <div style={{ marginBottom: 32 }}>
-                <Tag color="blue" style={{ borderRadius: 6, marginBottom: 8 }}>
+                <Tag color="blue" style={{ borderRadius: 0, marginBottom: 8 }}>
                   {(session.class as any)?.course_code}
                 </Tag>
-                <Title level={3} style={{ color: '#fff', margin: 0 }}>
+                <Title level={3} style={{ color: '#111111', margin: 0 }}>
                   {(session.class as any)?.name}
                 </Title>
                 <div style={{ marginTop: 8 }}>
                   {isClosed ? (
-                    <Badge status="default" text={<Text style={{ color: '#9ca3af' }}>Closed</Text>} />
+                    <Badge status="default" text={<Text style={{ color: '#6B6B6B' }}>Closed</Text>} />
                   ) : (
-                    <Badge status="processing" color="#10b981" text={<Text style={{ color: '#34d399' }}>Attendance Open</Text>} />
+                    <Badge status="processing" color="#16A34A" text={<Text style={{ color: '#16A34A', fontWeight: 600 }}>Attendance Open</Text>} />
                   )}
                 </div>
               </div>
@@ -320,23 +319,22 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                   <div style={{
                     fontSize: 'clamp(44px, 8vw, 72px)',
                     fontWeight: 800,
-                    color: '#fff',
+                    color: '#111111',
                     letterSpacing: 'clamp(6px, 1.5vw, 12px)',
                     fontFamily: 'monospace',
                     lineHeight: 1,
                     marginBottom: 16,
-                    textShadow: '0 0 40px rgba(99,102,241,0.5)',
                     transition: 'all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
-                    transform: isFlipping ? 'scale(0.94)' : 'scale(1)',
+                    transform: isFlipping ? 'scale(0.96)' : 'scale(1)',
                     opacity: isFlipping ? 0.75 : 1,
                   }}>
                     {formattedOtp}
                   </div>
 
                   <div style={{ marginBottom: 16 }}>
-                    <Text type="secondary" style={{ fontSize: 15 }}>
+                    <Text type="secondary" style={{ fontSize: 14 }}>
                       Changes in{' '}
-                      <Text style={{ color: secondsLeft <= 2 ? '#ef4444' : '#818cf8', fontWeight: 700 }}>
+                      <Text style={{ color: secondsLeft <= 2 ? '#DC2626' : '#2563EB', fontWeight: 700 }}>
                         {secondsLeft}s
                       </Text>
                       {' '}(every {otpPeriod}s)
@@ -346,8 +344,8 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                   <Progress
                     percent={smoothProgress}
                     showInfo={false}
-                    strokeColor={secondsLeft <= 2 ? '#ef4444' : '#6366f1'}
-                    railColor="rgba(255,255,255,0.1)"
+                    strokeColor={secondsLeft <= 2 ? '#DC2626' : '#2563EB'}
+                    railColor="#E4E4E4"
                     style={{ marginBottom: 20 }}
                   />
 
@@ -356,13 +354,13 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                     display: 'inline-flex',
                     alignItems: 'center',
                     gap: 10,
-                    background: 'rgba(255,255,255,0.04)',
-                    border: '1px solid rgba(255,255,255,0.08)',
-                    borderRadius: 12,
+                    background: '#FAFAFA',
+                    border: '1px solid #E4E4E4',
+                    borderRadius: 0,
                     padding: '6px 14px',
                     marginBottom: 28,
                   }}>
-                    <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13, fontWeight: 500 }}>
+                    <span style={{ color: '#6B6B6B', fontSize: 13, fontWeight: 500 }}>
                       Rotation Speed:
                     </span>
                     <Select
@@ -399,13 +397,13 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                     size="large"
                     onClick={() => window.open(`/present/${sessionId}`, '_blank')}
                     style={{
-                      borderRadius: 12,
-                      height: 46,
+                      borderRadius: 0,
+                      height: 42,
                       width: '100%',
                       fontWeight: 600,
-                      background: 'rgba(255,255,255,0.06)',
-                      borderColor: 'rgba(255,255,255,0.12)',
-                      color: '#fff',
+                      background: '#FFFFFF',
+                      borderColor: '#E4E4E4',
+                      color: '#111111',
                     }}
                   >
                     Open in New Tab (No Sidebar)
@@ -418,7 +416,7 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                     size="large"
                     loading={closing}
                     onClick={handleClose}
-                    style={{ borderRadius: 12, height: 48, width: '100%', fontWeight: 600 }}
+                    style={{ borderRadius: 0, height: 42, width: '100%', fontWeight: 600 }}
                   >
                     Close Attendance
                   </Button>
@@ -432,24 +430,24 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
             <Card
               title={
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                  <Text strong style={{ color: '#fff' }}>Live Attendance</Text>
+                  <Text strong style={{ color: '#111111' }}>Live Attendance</Text>
                   <Button
                     type="text"
                     icon={<ReloadOutlined />}
                     size="small"
                     onClick={() => loadSession(sessionId)}
-                    style={{ color: 'rgba(255,255,255,0.4)' }}
+                    style={{ color: '#6B6B6B' }}
                   />
                 </div>
               }
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 20,
+                background: '#FFFFFF',
+                border: '1px solid #E4E4E4',
+                borderRadius: 0,
                 height: '100%',
               }}
               styles={{
-                header: { borderBottom: '1px solid rgba(255,255,255,0.08)' },
+                header: { borderBottom: '1px solid #E4E4E4' },
                 body: { padding: '20px 24px' },
               }}
             >
@@ -460,18 +458,19 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                 gap: 20,
                 marginBottom: 20,
                 padding: '16px 20px',
-                background: 'rgba(255,255,255,0.04)',
-                borderRadius: 12,
+                background: '#FAFAFA',
+                border: '1px solid #E4E4E4',
+                borderRadius: 0,
               }}>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 36, fontWeight: 800, color: '#34d399', lineHeight: 1 }}>
+                  <div style={{ fontSize: 36, fontWeight: 800, color: '#16A34A', lineHeight: 1 }}>
                     {attendance.length}
                   </div>
                   <Text type="secondary" style={{ fontSize: 12 }}>Present</Text>
                 </div>
-                <div style={{ color: 'rgba(255,255,255,0.2)', fontSize: 28 }}>/</div>
+                <div style={{ color: '#E4E4E4', fontSize: 28 }}>/</div>
                 <div style={{ textAlign: 'center' }}>
-                  <div style={{ fontSize: 36, fontWeight: 800, color: '#fff', lineHeight: 1 }}>
+                  <div style={{ fontSize: 36, fontWeight: 800, color: '#111111', lineHeight: 1 }}>
                     {totalStudents}
                   </div>
                   <Text type="secondary" style={{ fontSize: 12 }}>Total</Text>
@@ -481,9 +480,9 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                     type="circle"
                     percent={progressPercent}
                     size={64}
-                    strokeColor="#6366f1"
-                    railColor="rgba(255,255,255,0.1)"
-                    format={(p) => <Text style={{ color: '#fff', fontSize: 13, fontWeight: 700 }}>{p}%</Text>}
+                    strokeColor="#2563EB"
+                    railColor="#E4E4E4"
+                    format={(p) => <Text style={{ color: '#111111', fontSize: 13, fontWeight: 700 }}>{p}%</Text>}
                   />
                 </div>
               </div>
@@ -494,16 +493,16 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                   dataSource={attendance}
                   locale={{ emptyText: <Text type="secondary">Waiting for students…</Text> }}
                   renderItem={(record) => (
-                    <List.Item style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.05)' }}>
+                    <List.Item style={{ padding: '10px 0', borderBottom: '1px solid #E4E4E4' }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
                         <Avatar
                           size={32}
-                          style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', flexShrink: 0 }}
+                          style={{ background: '#2563EB', borderRadius: 0, flexShrink: 0 }}
                         >
                           {(record.student as any)?.name?.charAt(0) ?? '?'}
                         </Avatar>
                         <div style={{ flex: 1 }}>
-                          <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>
+                          <div style={{ color: '#111111', fontWeight: 600, fontSize: 14 }}>
                             {(record.student as any)?.name ?? 'Unknown'}
                           </div>
                           <Text type="secondary" style={{ fontSize: 11 }}>
@@ -511,7 +510,7 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
                           </Text>
                         </div>
                         <div style={{ textAlign: 'right' }}>
-                          <CheckCircleOutlined style={{ color: '#34d399', fontSize: 16 }} />
+                          <CheckCircleOutlined style={{ color: '#16A34A', fontSize: 16 }} />
                           <div>
                             <Text type="secondary" style={{ fontSize: 11 }}>
                               {dayjs(record.marked_at).format('h:mm:ss A')}

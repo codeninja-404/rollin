@@ -12,7 +12,7 @@ export const viewport: Viewport = {
   width: 'device-width',
   initialScale: 1,
   maximumScale: 1,
-  themeColor: '#0d0d1a',
+  themeColor: '#FAFAFA',
 };
 
 export const metadata: Metadata = {
@@ -28,7 +28,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     <html lang="en" className={inter.className} suppressHydrationWarning>
       <body
         suppressHydrationWarning
-        style={{ margin: 0, padding: 0, background: '#0d0d1a', minHeight: '100vh' }}
+        style={{ margin: 0, padding: 0, background: '#FAFAFA', color: '#111111', minHeight: '100vh' }}
       >
         <Suspense fallback={null}>
           <TopProgressBar />

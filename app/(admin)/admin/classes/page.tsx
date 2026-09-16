@@ -2,18 +2,19 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Card, Table, Button, Typography, Tag, Modal, Form, Input,
-  Select, Space, Dropdown, message, Empty, Row, Col,
+  Card, Button, Typography, Tag, Modal, Form, Input,
+  Select, Space, Dropdown, message, Row, Col,
 } from 'antd';
 import {
   BookOutlined, PlusOutlined, MoreOutlined, TeamOutlined,
-  EyeOutlined, EditOutlined,
+  EyeOutlined,
 } from '@ant-design/icons';
 import type { ColumnsType } from 'antd/es/table';
 import type { Class } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import dayjs from 'dayjs';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
+import SharedTable from '@/components/SharedTable';
 
 const { Title, Text } = Typography;
 const { Option } = Select;
@@ -67,25 +68,27 @@ export default function ClassesPage() {
     {
       title: 'Class',
       key: 'class',
+      width: 220,
       render: (_, c) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{
-            width: 26,
-            height: 26,
-            borderRadius: 6,
-            background: 'rgba(99,102,241,0.15)',
+            width: 28,
+            height: 28,
+            borderRadius: 0,
+            background: '#EFF6FF',
+            border: '1px solid #BFDBFE',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#818cf8',
+            color: '#2563EB',
             fontSize: 13,
             flexShrink: 0,
           }}>
             <BookOutlined />
           </div>
-          <div style={{ lineHeight: 1.15 }}>
-            <div style={{ color: '#fff', fontWeight: 600, fontSize: 12.5, lineHeight: 1.2 }}>{c.name}</div>
-            <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, lineHeight: 1.1 }}>{c.course_code}</span>
+          <div style={{ lineHeight: 1.2 }}>
+            <div style={{ color: '#111111', fontWeight: 600, fontSize: 13 }}>{c.name}</div>
+            <span style={{ color: '#6B6B6B', fontSize: 11 }}>{c.course_code}</span>
           </div>
         </div>
       ),
@@ -93,13 +96,15 @@ export default function ClassesPage() {
     {
       title: 'Department',
       dataIndex: 'department',
-      render: (v: string) => <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{v ?? '—'}</span>,
+      width: 140,
+      render: (v: string) => <span style={{ color: '#111111', fontSize: 12 }}>{v ?? '—'}</span>,
     },
     {
       title: 'Semester / Section',
       key: 'sem',
+      width: 160,
       render: (_, c) => (
-        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
+        <span style={{ color: '#6B6B6B', fontSize: 12 }}>
           {[c.semester && `Sem ${c.semester}`, c.section && `Sec ${c.section}`].filter(Boolean).join(' · ') || '—'}
         </span>
       ),
@@ -108,9 +113,12 @@ export default function ClassesPage() {
       title: 'Status',
       dataIndex: 'status',
       align: 'center',
-      width: 85,
+      width: 90,
       render: (s: string) => (
-        <Tag color={s === 'active' ? 'green' : 'default'} style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px' }}>
+        <Tag
+          color={s === 'active' ? 'success' : 'default'}
+          style={{ borderRadius: 0, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}
+        >
           {s.toUpperCase()}
         </Tag>
       ),
@@ -119,16 +127,17 @@ export default function ClassesPage() {
       title: 'Created',
       dataIndex: 'created_at',
       align: 'center',
-      width: 105,
+      width: 110,
       render: (v: string) => (
-        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11.5 }}>{dayjs(v).format('MMM D, YYYY')}</span>
+        <span style={{ color: '#6B6B6B', fontSize: 12 }}>{dayjs(v).format('MMM D, YYYY')}</span>
       ),
     },
     {
-      title: '',
+      title: 'Action',
       key: 'actions',
-      width: 44,
+      width: 70,
       align: 'center',
+      fixed: 'right' as const,
       render: (_, c) => (
         <Dropdown
           menu={{
@@ -139,7 +148,13 @@ export default function ClassesPage() {
           }}
           trigger={['click']}
         >
-          <Button type="text" size="small" icon={<MoreOutlined />} style={{ color: 'rgba(255,255,255,0.5)', width: 24, height: 24, padding: 0 }} />
+          <Button
+            type="text"
+            size="small"
+            icon={<MoreOutlined />}
+            style={{ color: '#6B6B6B', width: 24, height: 24, padding: 0 }}
+            onClick={(e) => e.stopPropagation()}
+          />
         </Dropdown>
       ),
     },
@@ -148,20 +163,20 @@ export default function ClassesPage() {
   return (
     <AntdConfigProvider>
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>Classes</Title>
-            <Text type="secondary">{classes.length} classes total</Text>
+            <Title level={2} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>Classes</Title>
+            <Text type="secondary" style={{ color: '#6B6B6B' }}>{classes.length} classes total</Text>
           </div>
           <Button
             type="primary"
             icon={<PlusOutlined />}
             onClick={() => setModalOpen(true)}
             style={{
-              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-              border: 'none',
-              borderRadius: 10,
-              height: 38,
+              background: '#2563EB',
+              borderColor: '#2563EB',
+              borderRadius: 0,
+              height: 36,
               fontWeight: 600,
             }}
           >
@@ -171,20 +186,20 @@ export default function ClassesPage() {
 
         <Card
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 14,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
             overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
-          <Table
+          <SharedTable
             dataSource={classes}
             columns={columns}
             rowKey="id"
             loading={loading}
-            size="small"
-            pagination={{ pageSize: 15, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
+            scroll={{ x: 790 }}
+            pagination={{ pageSize: 15, showSizeChanger: false }}
             onRow={(c) => ({ onClick: () => router.push(`/admin/classes/${c.id}`), style: { cursor: 'pointer' } })}
             locale={{ emptyText: 'No classes yet. Create one to get started.' }}
           />
@@ -193,23 +208,24 @@ export default function ClassesPage() {
         {/* Create class modal */}
         <Modal
           title={
-            <div style={{ display: 'flex', alignItems: 'center', gap: 12, paddingBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 10, paddingBottom: 6 }}>
               <div style={{
-                width: 38,
-                height: 38,
-                borderRadius: 10,
-                background: 'rgba(99, 102, 241, 0.15)',
+                width: 32,
+                height: 32,
+                borderRadius: 0,
+                background: '#EFF6FF',
+                border: '1px solid #BFDBFE',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                color: '#818cf8',
-                fontSize: 18,
+                color: '#2563EB',
+                fontSize: 16,
               }}>
                 <BookOutlined />
               </div>
               <div>
-                <div style={{ color: '#fff', fontSize: 16, fontWeight: 700 }}>Create New Class</div>
-                <Text type="secondary" style={{ fontSize: 12 }}>Define course code, name, department, and section</Text>
+                <div style={{ color: '#111111', fontSize: 16, fontWeight: 700 }}>Create New Class</div>
+                <Text type="secondary" style={{ fontSize: 12, color: '#6B6B6B' }}>Define course code, name, department, and section</Text>
               </div>
             </div>
           }
@@ -217,35 +233,35 @@ export default function ClassesPage() {
           onCancel={() => { setModalOpen(false); form.resetFields(); }}
           footer={null}
           width={560}
-          styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
+          styles={{ body: { background: '#FFFFFF' }, header: { background: '#FFFFFF' } }}
         >
-          <Form form={form} layout="vertical" onFinish={handleCreate} style={{ marginTop: 20 }}>
+          <Form form={form} layout="vertical" onFinish={handleCreate} style={{ marginTop: 16 }}>
             <Row gutter={[16, 0]}>
               <Col xs={24} sm={10}>
                 <Form.Item
                   name="course_code"
-                  label={<Text style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Course Code</Text>}
+                  label={<Text style={{ color: '#111111', fontWeight: 500 }}>Course Code</Text>}
                   rules={[{ required: true, message: 'Please enter course code' }]}
                 >
-                  <Input placeholder="e.g. CSE101" style={{ borderRadius: 8, height: 42 }} />
+                  <Input placeholder="e.g. CSE101" style={{ borderRadius: 0, height: 38 }} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={14}>
                 <Form.Item
                   name="name"
-                  label={<Text style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Course Name</Text>}
+                  label={<Text style={{ color: '#111111', fontWeight: 500 }}>Course Name</Text>}
                   rules={[{ required: true, message: 'Please enter course name' }]}
                 >
-                  <Input placeholder="e.g. Data Structures & Algorithms" style={{ borderRadius: 8, height: 42 }} />
+                  <Input placeholder="e.g. Data Structures & Algorithms" style={{ borderRadius: 0, height: 38 }} />
                 </Form.Item>
               </Col>
             </Row>
 
             <Form.Item
               name="department"
-              label={<Text style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Department</Text>}
+              label={<Text style={{ color: '#111111', fontWeight: 500 }}>Department</Text>}
             >
-              <Select placeholder="Select department" style={{ borderRadius: 8, height: 42 }}>
+              <Select placeholder="Select department" style={{ borderRadius: 0, height: 38 }}>
                 {DEPARTMENTS.map((d) => <Option key={d} value={d}>{d}</Option>)}
               </Select>
             </Form.Item>
@@ -254,9 +270,9 @@ export default function ClassesPage() {
               <Col xs={24} sm={12}>
                 <Form.Item
                   name="semester"
-                  label={<Text style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Semester</Text>}
+                  label={<Text style={{ color: '#111111', fontWeight: 500 }}>Semester</Text>}
                 >
-                  <Select placeholder="Select semester" style={{ width: '100%', borderRadius: 8, height: 42 }}>
+                  <Select placeholder="Select semester" style={{ width: '100%', borderRadius: 0, height: 38 }}>
                     {[1, 2, 3, 4, 5, 6, 7, 8].map((n) => <Option key={n} value={n}>Semester {n}</Option>)}
                   </Select>
                 </Form.Item>
@@ -264,9 +280,9 @@ export default function ClassesPage() {
               <Col xs={24} sm={12}>
                 <Form.Item
                   name="section"
-                  label={<Text style={{ color: 'rgba(255,255,255,0.8)', fontWeight: 500 }}>Section</Text>}
+                  label={<Text style={{ color: '#111111', fontWeight: 500 }}>Section</Text>}
                 >
-                  <Input placeholder="e.g. A, B, C…" style={{ borderRadius: 8, height: 42 }} />
+                  <Input placeholder="e.g. A, B, C…" style={{ borderRadius: 0, height: 38 }} />
                 </Form.Item>
               </Col>
             </Row>
@@ -274,7 +290,7 @@ export default function ClassesPage() {
             <div style={{ display: 'flex', justifyContent: 'flex-end', gap: 12, marginTop: 12 }}>
               <Button
                 onClick={() => { setModalOpen(false); form.resetFields(); }}
-                style={{ height: 40, borderRadius: 8 }}
+                style={{ height: 38, borderRadius: 0 }}
               >
                 Cancel
               </Button>
@@ -283,13 +299,13 @@ export default function ClassesPage() {
                 htmlType="submit"
                 loading={saving}
                 style={{
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+                  background: '#2563EB',
+                  borderColor: '#2563EB',
                   border: 'none',
-                  borderRadius: 8,
-                  height: 40,
+                  borderRadius: 0,
+                  height: 38,
                   padding: '0 24px',
                   fontWeight: 600,
-                  boxShadow: '0 4px 12px rgba(99, 102, 241, 0.35)',
                 }}
               >
                 Create Class

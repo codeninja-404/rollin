@@ -2,14 +2,15 @@
 
 import React, { useEffect, useState } from 'react';
 import {
-  Card, Typography, Tag, Button, Statistic, Row, Col, Spin, Empty, Descriptions, Table,
+  Card, Typography, Tag, Button, Row, Col, Empty, Descriptions,
 } from 'antd';
-import { ArrowLeftOutlined, TeamOutlined, CheckSquareOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined, TeamOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import type { Class, AttendanceSession } from '@/lib/types';
 import dayjs from 'dayjs';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
 import StylishLoader from '@/components/StylishLoader';
+import SharedTable from '@/components/SharedTable';
 
 const { Title, Text } = Typography;
 
@@ -54,13 +55,16 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
     {
       title: 'Date',
       dataIndex: 'started_at',
-      render: (v: string) => dayjs(v).format('MMM D, YYYY h:mm A'),
+      width: 200,
+      render: (v: string) => <span style={{ color: '#111111' }}>{dayjs(v).format('MMM D, YYYY h:mm A')}</span>,
     },
     {
       title: 'Status',
       dataIndex: 'status',
+      width: 100,
+      align: 'center' as const,
       render: (s: string) => (
-        <Tag color={s === 'open' ? 'green' : 'default'} style={{ borderRadius: 6 }}>
+        <Tag color={s === 'open' ? 'success' : 'default'} style={{ borderRadius: 0, fontWeight: 600 }}>
           {s.toUpperCase()}
         </Tag>
       ),
@@ -68,22 +72,26 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
     {
       title: 'Duration',
       key: 'duration',
+      width: 120,
       render: (_: any, s: AttendanceSession) => {
-        if (!s.ended_at) return <Text type="secondary">Ongoing</Text>;
+        if (!s.ended_at) return <Text type="secondary" style={{ color: '#6B6B6B' }}>Ongoing</Text>;
         const mins = dayjs(s.ended_at).diff(dayjs(s.started_at), 'minute');
-        return <Text type="secondary">{mins} min</Text>;
+        return <Text type="secondary" style={{ color: '#6B6B6B' }}>{mins} min</Text>;
       },
     },
     {
-      title: '',
+      title: 'Action',
       key: 'actions',
+      width: 110,
+      align: 'center' as const,
+      fixed: 'right' as const,
       render: (_: any, s: AttendanceSession) => (
         s.status === 'open' ? (
           <Button
             size="small"
             type="primary"
             onClick={() => router.push(`/admin/attendance/sessions/${s.id}`)}
-            style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', border: 'none', borderRadius: 6 }}
+            style={{ background: '#2563EB', borderColor: '#2563EB', borderRadius: 0, fontWeight: 500 }}
           >
             View Live
           </Button>
@@ -99,7 +107,7 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
           type="text"
           icon={<ArrowLeftOutlined />}
           onClick={() => router.push('/admin/classes')}
-          style={{ color: 'rgba(255,255,255,0.6)', marginBottom: 20 }}
+          style={{ color: '#6B6B6B', marginBottom: 16, padding: 0 }}
         >
           Back to Classes
         </Button>
@@ -107,23 +115,26 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
         {/* Class header */}
         <Card
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
             marginBottom: 20,
           }}
-          styles={{ body: { padding: 28 } }}
+          styles={{ body: { padding: 24 } }}
         >
           <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', flexWrap: 'wrap', gap: 16 }}>
             <div>
-              <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 8 }}>
-                <Title level={2} style={{ color: '#fff', margin: 0 }}>{cls.name}</Title>
-                <Tag color="blue" style={{ borderRadius: 6 }}>{cls.course_code}</Tag>
-                <Tag color={cls.status === 'active' ? 'green' : 'default'} style={{ borderRadius: 6 }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 8, flexWrap: 'wrap' }}>
+                <Title level={2} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>{cls.name}</Title>
+                <Tag color="blue" style={{ borderRadius: 0, fontWeight: 600 }}>{cls.course_code}</Tag>
+                <Tag color={cls.status === 'active' ? 'success' : 'default'} style={{ borderRadius: 0, fontWeight: 600 }}>
                   {cls.status.toUpperCase()}
                 </Tag>
               </div>
-              <Descriptions column={3} labelStyle={{ color: 'rgba(255,255,255,0.5)' }} contentStyle={{ color: '#fff' }}>
+              <Descriptions
+                column={{ xs: 1, sm: 2, md: 3 }}
+                styles={{ label: { color: '#6B6B6B' }, content: { color: '#111111', fontWeight: 500 } }}
+              >
                 <Descriptions.Item label="Department">{cls.department ?? '—'}</Descriptions.Item>
                 <Descriptions.Item label="Semester">{cls.semester ? `Semester ${cls.semester}` : '—'}</Descriptions.Item>
                 <Descriptions.Item label="Section">{cls.section ?? '—'}</Descriptions.Item>
@@ -133,23 +144,23 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
               type="primary"
               icon={<TeamOutlined />}
               onClick={() => router.push(`/admin/classes/${classId}/students`)}
-              style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', border: 'none', borderRadius: 10, height: 40 }}
+              style={{ background: '#2563EB', borderColor: '#2563EB', borderRadius: 0, height: 36, fontWeight: 600 }}
             >
               Manage Students
             </Button>
           </div>
 
-          <Row gutter={24} style={{ marginTop: 24 }}>
-            <Col>
-              <div style={{ textAlign: 'center', padding: '12px 24px', background: 'rgba(99,102,241,0.1)', borderRadius: 12 }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: '#818cf8' }}>{studentCount}</div>
-                <Text type="secondary">Students Enrolled</Text>
+          <Row gutter={16} style={{ marginTop: 20 }}>
+            <Col xs={12} sm={6}>
+              <div style={{ padding: '12px 16px', background: '#F4F4F5', border: '1px solid #E4E4E4', borderRadius: 0 }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: '#2563EB' }}>{studentCount}</div>
+                <Text type="secondary" style={{ fontSize: 12, color: '#6B6B6B' }}>Students Enrolled</Text>
               </div>
             </Col>
-            <Col>
-              <div style={{ textAlign: 'center', padding: '12px 24px', background: 'rgba(16,185,129,0.1)', borderRadius: 12 }}>
-                <div style={{ fontSize: 28, fontWeight: 700, color: '#34d399' }}>{sessions.length}</div>
-                <Text type="secondary">Sessions Total</Text>
+            <Col xs={12} sm={6}>
+              <div style={{ padding: '12px 16px', background: '#F4F4F5', border: '1px solid #E4E4E4', borderRadius: 0 }}>
+                <div style={{ fontSize: 24, fontWeight: 700, color: '#16A34A' }}>{sessions.length}</div>
+                <Text type="secondary" style={{ fontSize: 12, color: '#6B6B6B' }}>Sessions Total</Text>
               </div>
             </Col>
           </Row>
@@ -157,21 +168,21 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
 
         {/* Sessions */}
         <Card
-          title={<Text strong style={{ color: '#fff' }}>Attendance Sessions</Text>}
+          title={<Text strong style={{ color: '#111111', fontSize: 14 }}>Attendance Sessions</Text>}
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 14,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
             overflow: 'hidden',
           }}
-          styles={{ header: { borderBottom: '1px solid rgba(255,255,255,0.08)' }, body: { padding: 0 } }}
+          styles={{ header: { borderBottom: '1px solid #E4E4E4' }, body: { padding: 0 } }}
         >
-          <Table
+          <SharedTable
             dataSource={sessions}
             columns={sessionColumns}
             rowKey="id"
-            size="small"
-            pagination={{ pageSize: 10, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
+            scroll={{ x: 530 }}
+            pagination={{ pageSize: 10, showSizeChanger: false }}
             locale={{ emptyText: 'No sessions yet' }}
           />
         </Card>

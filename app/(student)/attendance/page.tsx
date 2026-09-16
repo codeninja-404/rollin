@@ -125,24 +125,21 @@ export default function AttendancePage() {
       justifyContent: 'center',
       padding: 24,
       position: 'relative',
+      background: '#FAFAFA',
     }}>
-      {/* Decorative blobs */}
-      <div style={{ position: 'fixed', top: '-20%', right: '-10%', width: 500, height: 500, borderRadius: '50%', background: 'radial-gradient(circle, rgba(99,102,241,0.25) 0%, transparent 70%)', pointerEvents: 'none' }} />
-      <div style={{ position: 'fixed', bottom: '-15%', left: '-10%', width: 400, height: 400, borderRadius: '50%', background: 'radial-gradient(circle, rgba(139,92,246,0.2) 0%, transparent 70%)', pointerEvents: 'none' }} />
-
       {/* Header */}
-      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10 }}>
+      <div style={{ position: 'fixed', top: 0, left: 0, right: 0, padding: '16px 24px', display: 'flex', justifyContent: 'space-between', alignItems: 'center', zIndex: 10, background: '#FFFFFF', borderBottom: '1px solid #E4E4E4' }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-          <div style={{ width: 32, height: 32, borderRadius: 8, background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-            <BookOutlined style={{ color: '#fff', fontSize: 16 }} />
+          <div style={{ width: 30, height: 30, borderRadius: 0, background: '#2563EB', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+            <BookOutlined style={{ color: '#FFFFFF', fontSize: 16 }} />
           </div>
-          <Text strong style={{ color: '#fff', fontSize: 16 }}>Rollin</Text>
+          <Text strong style={{ color: '#111111', fontSize: 15 }}>Rollin</Text>
         </div>
         <Button
           type="text"
           icon={<LogoutOutlined />}
           onClick={handleSignOut}
-          style={{ color: 'rgba(255,255,255,0.5)' }}
+          style={{ color: '#6B6B6B', borderRadius: 0 }}
         >
           Sign Out
         </Button>
@@ -153,32 +150,33 @@ export default function AttendancePage() {
         style={{
           width: '100%',
           maxWidth: 440,
-          background: 'rgba(255,255,255,0.05)',
-          backdropFilter: 'blur(20px)',
-          border: '1px solid rgba(255,255,255,0.1)',
-          borderRadius: 24,
-          boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+          background: '#FFFFFF',
+          border: '1px solid #E4E4E4',
+          borderRadius: 0,
+          boxShadow: 'none',
           textAlign: 'center',
+          marginTop: 60,
         }}
-        styles={{ body: { padding: 40 } }}
+        styles={{ body: { padding: 36 } }}
       >
         {/* State 1: No active class */}
         {!hasSession && (
           <div>
             <div style={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              background: 'rgba(255,255,255,0.05)',
+              width: 64,
+              height: 64,
+              borderRadius: 0,
+              background: '#FAFAFA',
+              border: '1px solid #E4E4E4',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 20px',
-              fontSize: 32,
+              fontSize: 28,
             }}>
-              <ClockCircleOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />
+              <ClockCircleOutlined style={{ color: '#6B6B6B' }} />
             </div>
-            <Title level={3} style={{ color: '#fff', margin: '0 0 8px' }}>
+            <Title level={3} style={{ color: '#111111', margin: '0 0 8px' }}>
               No Active Class
             </Title>
             <Text type="secondary">
@@ -190,7 +188,7 @@ export default function AttendancePage() {
                 type="text"
                 size="small"
                 onClick={loadState}
-                style={{ color: 'rgba(255,255,255,0.4)' }}
+                style={{ color: '#2563EB', borderRadius: 0 }}
               >
                 Refresh
               </Button>
@@ -201,21 +199,21 @@ export default function AttendancePage() {
         {/* State 2: Attendance open, not attended */}
         {hasSession && !isDone && (
           <div>
-            <div style={{ marginBottom: 24 }}>
-              <Badge status="processing" color="#10b981" />
-              <Text style={{ color: '#34d399', fontWeight: 600, marginLeft: 8 }}>
+            <div style={{ marginBottom: 20 }}>
+              <Badge status="processing" color="#16A34A" />
+              <Text style={{ color: '#16A34A', fontWeight: 600, marginLeft: 8 }}>
                 Attendance Open
               </Text>
             </div>
 
             <div style={{
-              background: 'rgba(99,102,241,0.1)',
-              borderRadius: 14,
+              background: '#FAFAFA',
+              borderRadius: 0,
               padding: '16px 20px',
-              marginBottom: 28,
-              border: '1px solid rgba(99,102,241,0.2)',
+              marginBottom: 24,
+              border: '1px solid #E4E4E4',
             }}>
-              <Title level={3} style={{ color: '#fff', margin: '0 0 4px' }}>
+              <Title level={3} style={{ color: '#111111', margin: '0 0 4px' }}>
                 {(session!.class as any)?.name}
               </Title>
               <Text type="secondary">{(session!.class as any)?.course_code}</Text>
@@ -225,14 +223,14 @@ export default function AttendancePage() {
               <Alert
                 message={error}
                 type="error"
-                style={{ borderRadius: 10, marginBottom: 16, textAlign: 'left' }}
+                style={{ borderRadius: 0, marginBottom: 16, textAlign: 'left' }}
                 closable
                 onClose={() => setError(null)}
               />
             )}
 
             <div style={{ marginBottom: 8, textAlign: 'left' }}>
-              <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 13 }}>
+              <Text style={{ color: '#6B6B6B', fontSize: 13 }}>
                 Enter the 6-digit OTP shown in class
               </Text>
             </div>
@@ -247,18 +245,18 @@ export default function AttendancePage() {
               maxLength={6}
               size="large"
               style={{
-                background: 'rgba(255,255,255,0.07)',
-                border: '1px solid rgba(255,255,255,0.15)',
-                borderRadius: 12,
-                color: '#fff',
-                fontSize: 28,
-                letterSpacing: 12,
+                background: '#FFFFFF',
+                border: '1px solid #E4E4E4',
+                borderRadius: 0,
+                color: '#111111',
+                fontSize: 24,
+                letterSpacing: 10,
                 textAlign: 'center',
-                height: 60,
+                height: 52,
                 marginBottom: 16,
                 fontFamily: 'monospace',
               }}
-              prefix={<LockOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+              prefix={<LockOutlined style={{ color: '#6B6B6B' }} />}
               onPressEnter={handleSubmit}
             />
 
@@ -270,13 +268,12 @@ export default function AttendancePage() {
               disabled={otp.length !== 6}
               onClick={handleSubmit}
               style={{
-                height: 52,
-                borderRadius: 12,
-                fontSize: 16,
+                height: 44,
+                borderRadius: 0,
+                fontSize: 15,
                 fontWeight: 600,
-                background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-                border: 'none',
-                boxShadow: '0 8px 24px rgba(99,102,241,0.4)',
+                background: '#2563EB',
+                borderColor: '#2563EB',
               }}
             >
               {submitting ? 'Submitting…' : 'Submit Attendance'}
@@ -288,28 +285,29 @@ export default function AttendancePage() {
         {hasSession && isDone && (
           <div>
             <div style={{
-              width: 80,
-              height: 80,
-              borderRadius: '50%',
-              background: 'rgba(16,185,129,0.15)',
+              width: 64,
+              height: 64,
+              borderRadius: 0,
+              background: '#F0FDF4',
+              border: '1px solid #BBF7D0',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               margin: '0 auto 20px',
             }}>
-              <CheckCircleFilled style={{ color: '#34d399', fontSize: 40 }} />
+              <CheckCircleFilled style={{ color: '#16A34A', fontSize: 32 }} />
             </div>
-            <Title level={3} style={{ color: '#fff', margin: '0 0 8px' }}>
+            <Title level={3} style={{ color: '#111111', margin: '0 0 8px' }}>
               ✓ Attendance Done
             </Title>
             <div style={{
-              background: 'rgba(99,102,241,0.1)',
-              borderRadius: 14,
+              background: '#FAFAFA',
+              borderRadius: 0,
               padding: '16px 20px',
               margin: '16px 0',
-              border: '1px solid rgba(99,102,241,0.2)',
+              border: '1px solid #E4E4E4',
             }}>
-              <Text strong style={{ color: '#fff', fontSize: 16 }}>
+              <Text strong style={{ color: '#111111', fontSize: 16 }}>
                 {(session!.class as any)?.name}
               </Text>
               <div>

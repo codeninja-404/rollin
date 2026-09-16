@@ -1,19 +1,19 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Card, Table, Typography, Tag, Select, DatePicker, Space,
-  Button, Drawer, List, Avatar, Badge,
+  Card, Typography, Tag, Space,
+  Button, Drawer, List, Avatar,
 } from 'antd';
-import { HistoryOutlined, EyeOutlined, CheckCircleOutlined, FileExcelOutlined, DownloadOutlined } from '@ant-design/icons';
+import { EyeOutlined, FileExcelOutlined } from '@ant-design/icons';
 import type { AttendanceSession, Attendance } from '@/lib/types';
 import dayjs from 'dayjs';
 import * as XLSX from 'xlsx';
 import { message } from 'antd';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
+import SharedTable from '@/components/SharedTable';
 
 const { Title, Text } = Typography;
-const { Option } = Select;
 
 export default function HistoryPage() {
   const [sessions, setSessions] = useState<AttendanceSession[]>([]);
@@ -140,7 +140,7 @@ export default function HistoryPage() {
       const fileName = `Session_${(session.class as any)?.course_code || 'Class'}_${dayjs(session.started_at).format('YYYY-MM-DD_HHmm')}.xlsx`;
       XLSX.writeFile(wb, fileName);
       message.success('Session report exported (.xlsx)!');
-    } catch (err) {
+    } catch {
       message.error('Failed to export session report');
     } finally {
       setExportingId(null);
@@ -173,34 +173,40 @@ export default function HistoryPage() {
     {
       title: 'Class',
       key: 'class',
+      width: 220,
       render: (_: any, s: AttendanceSession) => (
-        <div style={{ lineHeight: 1.15 }}>
-          <div style={{ color: '#fff', fontWeight: 600, fontSize: 12.5, lineHeight: 1.2 }}>{(s.class as any)?.name}</div>
-          <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, lineHeight: 1.1 }}>{(s.class as any)?.course_code}</span>
+        <div style={{ lineHeight: 1.2 }}>
+          <div style={{ color: '#111111', fontWeight: 600, fontSize: 13 }}>{(s.class as any)?.name}</div>
+          <span style={{ color: '#6B6B6B', fontSize: 11 }}>{(s.class as any)?.course_code}</span>
         </div>
       ),
     },
     {
       title: 'Date',
       dataIndex: 'started_at',
-      render: (v: string) => <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>{dayjs(v).format('MMM D, YYYY h:mm A')}</span>,
+      width: 200,
+      render: (v: string) => <span style={{ color: '#111111', fontSize: 12 }}>{dayjs(v).format('MMM D, YYYY h:mm A')}</span>,
     },
     {
       title: 'Duration',
       key: 'duration',
+      width: 120,
       render: (_: any, s: AttendanceSession) => {
-        if (!s.ended_at) return <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>—</span>;
+        if (!s.ended_at) return <span style={{ color: '#6B6B6B', fontSize: 12 }}>—</span>;
         const mins = dayjs(s.ended_at).diff(dayjs(s.started_at), 'minute');
-        return <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{mins} min</span>;
+        return <span style={{ color: '#6B6B6B', fontSize: 12 }}>{mins} min</span>;
       },
     },
     {
       title: 'Status',
       dataIndex: 'status',
       align: 'center' as const,
-      width: 85,
+      width: 100,
       render: (status: string) => (
-        <Tag color={status === 'open' ? 'green' : 'default'} style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px' }}>
+        <Tag
+          color={status === 'open' ? 'success' : 'default'}
+          style={{ borderRadius: 0, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}
+        >
           {status.toUpperCase()}
         </Tag>
       ),
@@ -210,23 +216,24 @@ export default function HistoryPage() {
       key: 'actions',
       align: 'center' as const,
       width: 140,
+      fixed: 'right' as const,
       render: (_: any, s: AttendanceSession) => (
         <Space size={6}>
           <Button
-            type="text"
+            type="default"
             icon={<EyeOutlined />}
             size="small"
-            style={{ color: '#818cf8', height: 24, fontSize: 11.5, padding: '0 6px' }}
+            style={{ height: 24, fontSize: 11.5, padding: '0 8px', borderRadius: 0, borderColor: '#E4E4E4', color: '#2563EB' }}
             onClick={() => viewSession(s)}
           >
             View
           </Button>
           <Button
-            type="text"
+            type="default"
             icon={<FileExcelOutlined />}
             size="small"
             loading={exportingId === s.id}
-            style={{ color: '#34d399', height: 24, fontSize: 11.5, padding: '0 6px' }}
+            style={{ height: 24, fontSize: 11.5, padding: '0 8px', borderRadius: 0, borderColor: '#E4E4E4', color: '#16A34A' }}
             onClick={() => exportSessionXLSX(s)}
           >
             XLSX
@@ -241,20 +248,20 @@ export default function HistoryPage() {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>
+            <Title level={2} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>
               Attendance History
             </Title>
-            <Text type="secondary">Past sessions and attendance records</Text>
+            <Text type="secondary" style={{ color: '#6B6B6B' }}>Past sessions and attendance records</Text>
           </div>
           <Button
             icon={<FileExcelOutlined />}
             onClick={exportAllSessionsXLSX}
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              borderColor: 'rgba(255,255,255,0.12)',
-              color: '#fff',
-              borderRadius: 10,
-              height: 38,
+              background: '#FFFFFF',
+              borderColor: '#E4E4E4',
+              color: '#111111',
+              borderRadius: 0,
+              height: 36,
               fontWeight: 500,
             }}
           >
@@ -264,20 +271,20 @@ export default function HistoryPage() {
 
         <Card
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 14,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
             overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
-          <Table
+          <SharedTable
             dataSource={sessions}
             columns={columns}
             rowKey="id"
             loading={loading}
-            size="small"
-            pagination={{ pageSize: 15, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
+            scroll={{ x: 780 }}
+            pagination={{ pageSize: 15, showSizeChanger: false }}
             locale={{ emptyText: 'No closed sessions yet' }}
           />
         </Card>
@@ -287,8 +294,8 @@ export default function HistoryPage() {
           title={
             selected ? (
               <div>
-                <div style={{ color: '#fff', fontWeight: 700 }}>{(selected.class as any)?.name}</div>
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <div style={{ color: '#111111', fontWeight: 700 }}>{(selected.class as any)?.name}</div>
+                <Text type="secondary" style={{ fontSize: 12, color: '#6B6B6B' }}>
                   {dayjs(selected.started_at).format('MMMM D, YYYY h:mm A')}
                 </Text>
               </div>
@@ -297,10 +304,13 @@ export default function HistoryPage() {
           open={drawerOpen}
           onClose={() => setDrawerOpen(false)}
           width={400}
-          styles={{ body: { padding: 20 }, header: { background: '#1a1a2e' }, wrapper: { background: '#1a1a2e' } }}
+          styles={{
+            body: { padding: 20, background: '#FFFFFF' },
+            header: { background: '#FFFFFF', borderBottom: '1px solid #E4E4E4' },
+          }}
         >
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 16 }}>
-            <Text type="secondary">
+            <Text type="secondary" style={{ color: '#6B6B6B' }}>
               {sessionAttendance.length} students attended
             </Text>
             {selected && (
@@ -311,10 +321,10 @@ export default function HistoryPage() {
                 loading={exportingId === selected.id}
                 onClick={() => exportSessionXLSX(selected, sessionAttendance)}
                 style={{
-                  background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                  border: 'none',
-                  borderRadius: 6,
-                  fontWeight: 600,
+                  background: '#2563EB',
+                  borderColor: '#2563EB',
+                  borderRadius: 0,
+                  fontWeight: 500,
                 }}
               >
                 Export XLSX
@@ -325,16 +335,16 @@ export default function HistoryPage() {
             loading={loadingDetail}
             dataSource={sessionAttendance}
             renderItem={(a) => (
-              <List.Item style={{ padding: '10px 0', borderBottom: '1px solid rgba(255,255,255,0.06)' }}>
+              <List.Item style={{ padding: '10px 0', borderBottom: '1px solid #E4E4E4' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
-                  <Avatar size={32} style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)' }}>
+                  <Avatar size={30} style={{ background: '#2563EB', color: '#FFFFFF', borderRadius: 0, fontWeight: 600 }}>
                     {(a.student as any)?.name?.charAt(0)}
                   </Avatar>
                   <div style={{ flex: 1 }}>
-                    <div style={{ color: '#fff', fontWeight: 600 }}>{(a.student as any)?.name}</div>
-                    <Text type="secondary" style={{ fontSize: 11 }}>{(a.student as any)?.student_code}</Text>
+                    <div style={{ color: '#111111', fontWeight: 600, fontSize: 13 }}>{(a.student as any)?.name}</div>
+                    <Text type="secondary" style={{ fontSize: 11, color: '#6B6B6B' }}>{(a.student as any)?.student_code}</Text>
                   </div>
-                  <Text type="secondary" style={{ fontSize: 11 }}>
+                  <Text type="secondary" style={{ fontSize: 11, color: '#6B6B6B' }}>
                     {dayjs(a.marked_at).format('h:mm:ss A')}
                   </Text>
                 </div>

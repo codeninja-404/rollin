@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState } from 'react';
-import { Row, Col, Card, Statistic, Typography, Table, Tag, Spin, Badge } from 'antd';
+import { Row, Col, Card, Statistic, Typography, Tag, Spin, Badge } from 'antd';
 import {
   TeamOutlined,
   BookOutlined,
@@ -13,6 +13,7 @@ import dayjs from 'dayjs';
 import relativeTime from 'dayjs/plugin/relativeTime';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
 import StylishLoader from '@/components/StylishLoader';
+import SharedTable from '@/components/SharedTable';
 
 dayjs.extend(relativeTime);
 
@@ -26,9 +27,9 @@ interface DashboardStats {
 }
 
 const statCardStyle: React.CSSProperties = {
-  background: 'rgba(255,255,255,0.04)',
-  border: '1px solid rgba(255,255,255,0.08)',
-  borderRadius: 16,
+  background: '#FFFFFF',
+  border: '1px solid #E4E4E4',
+  borderRadius: 0,
   overflow: 'hidden',
 };
 
@@ -60,29 +61,29 @@ export default function AdminDashboard() {
       title: 'Total Students',
       value: stats?.totalStudents ?? 0,
       icon: <TeamOutlined />,
-      color: '#6366f1',
-      bg: 'rgba(99,102,241,0.15)',
+      color: '#2563EB',
+      bg: '#EFF6FF',
     },
     {
       title: 'Total Classes',
       value: stats?.totalClasses ?? 0,
       icon: <BookOutlined />,
-      color: '#8b5cf6',
-      bg: 'rgba(139,92,246,0.15)',
+      color: '#7C3AED',
+      bg: '#F5F3FF',
     },
     {
       title: 'Open Sessions',
       value: stats?.openSessions ?? 0,
       icon: <ClockCircleOutlined />,
-      color: '#10b981',
-      bg: 'rgba(16,185,129,0.15)',
+      color: '#16A34A',
+      bg: '#F0FDF4',
     },
     {
       title: "Today's Attendance",
       value: stats?.todayAttendance ?? 0,
       icon: <CheckCircleOutlined />,
-      color: '#f59e0b',
-      bg: 'rgba(245,158,11,0.15)',
+      color: '#D97706',
+      bg: '#FFFBEB',
     },
   ];
 
@@ -91,9 +92,10 @@ export default function AdminDashboard() {
       title: 'Class',
       dataIndex: ['class', 'name'],
       key: 'class',
+      width: 250,
       render: (name: string, row: any) => (
         <div>
-          <div style={{ color: '#fff', fontWeight: 600 }}>{name}</div>
+          <div style={{ color: '#111111', fontWeight: 600 }}>{name}</div>
           <Text type="secondary" style={{ fontSize: 12 }}>{row.class?.course_code}</Text>
         </div>
       ),
@@ -102,13 +104,14 @@ export default function AdminDashboard() {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
+      width: 140,
       render: (status: string) => (
         <Badge
           status={status === 'open' ? 'processing' : 'default'}
           text={
             <Tag
               color={status === 'open' ? 'green' : 'default'}
-              style={{ borderRadius: 6 }}
+              style={{ borderRadius: 0 }}
             >
               {status === 'open' ? 'OPEN' : 'CLOSED'}
             </Tag>
@@ -120,6 +123,7 @@ export default function AdminDashboard() {
       title: 'Started',
       dataIndex: 'started_at',
       key: 'started_at',
+      width: 160,
       render: (val: string) => (
         <Text type="secondary" style={{ fontSize: 13 }}>
           {dayjs(val).format('MMM D, h:mm A')}
@@ -132,7 +136,7 @@ export default function AdminDashboard() {
     <AntdConfigProvider>
       <div>
         <div style={{ marginBottom: 28 }}>
-          <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>
+          <Title level={2} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>
             Dashboard
           </Title>
           <Text type="secondary">
@@ -156,7 +160,7 @@ export default function AdminDashboard() {
                       <div style={{
                         width: 48,
                         height: 48,
-                        borderRadius: 12,
+                        borderRadius: 0,
                         background: card.bg,
                         display: 'flex',
                         alignItems: 'center',
@@ -171,7 +175,7 @@ export default function AdminDashboard() {
                         <Text type="secondary" style={{ fontSize: 13, display: 'block', marginBottom: 4 }}>
                           {card.title}
                         </Text>
-                        <div style={{ fontSize: 32, fontWeight: 700, color: '#fff', lineHeight: 1 }}>
+                        <div style={{ fontSize: 32, fontWeight: 700, color: '#111111', lineHeight: 1 }}>
                           {card.value}
                         </div>
                       </div>
@@ -184,19 +188,19 @@ export default function AdminDashboard() {
             {/* Recent sessions */}
             <Card
               title={
-                <Text strong style={{ color: '#fff', fontSize: 16 }}>
+                <Text strong style={{ color: '#111111', fontSize: 15 }}>
                   Recent Sessions
                 </Text>
               }
               style={statCardStyle}
-              styles={{ header: { borderBottom: '1px solid rgba(255,255,255,0.08)' } }}
+              styles={{ header: { borderBottom: '1px solid #E4E4E4' } }}
             >
-              <Table
+              <SharedTable
                 dataSource={recentSessions}
                 columns={columns}
                 rowKey="id"
-                size="small"
                 pagination={false}
+                scroll={{ x: 550 }}
                 locale={{ emptyText: 'No sessions yet' }}
                 style={{ background: 'transparent' }}
               />

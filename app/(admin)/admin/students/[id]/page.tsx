@@ -1,16 +1,17 @@
 'use client';
 
-import React, { useEffect, useState, useCallback } from 'react';
+import React, { useEffect, useState } from 'react';
 import {
-  Card, Descriptions, Tag, Avatar, Table, Tabs, Typography,
-  Button, Spin, Empty, Badge,
+  Card, Descriptions, Tag, Avatar, Tabs, Typography,
+  Button, Empty,
 } from 'antd';
-import { ArrowLeftOutlined, BookOutlined, CheckCircleOutlined } from '@ant-design/icons';
+import { ArrowLeftOutlined } from '@ant-design/icons';
 import { useRouter } from 'next/navigation';
 import type { Student, ClassStudent, Attendance } from '@/lib/types';
 import dayjs from 'dayjs';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
 import StylishLoader from '@/components/StylishLoader';
+import SharedTable from '@/components/SharedTable';
 
 const { Title, Text } = Typography;
 
@@ -53,20 +54,24 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     {
       title: 'Class',
       key: 'class',
+      width: 220,
       render: (_: any, a: Attendance) => (
-        <Text style={{ color: '#fff' }}>{(a.session as any)?.class?.name ?? '—'}</Text>
+        <span style={{ color: '#111111', fontWeight: 500 }}>{(a.session as any)?.class?.name ?? '—'}</span>
       ),
     },
     {
       title: 'Date',
       dataIndex: 'marked_at',
-      render: (val: string) => dayjs(val).format('MMM D, YYYY h:mm A'),
+      width: 180,
+      render: (val: string) => <span style={{ color: '#111111' }}>{dayjs(val).format('MMM D, YYYY h:mm A')}</span>,
     },
     {
       title: 'Status',
       dataIndex: 'status',
+      width: 100,
+      align: 'center' as const,
       render: (s: string) => (
-        <Tag color="green" style={{ borderRadius: 6 }}>{s.toUpperCase()}</Tag>
+        <Tag color="success" style={{ borderRadius: 0, fontWeight: 600 }}>{s.toUpperCase()}</Tag>
       ),
     },
   ];
@@ -75,21 +80,24 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
     {
       title: 'Class',
       key: 'class',
+      width: 220,
       render: (_: any, cs: ClassStudent) => (
         <div>
-          <div style={{ color: '#fff', fontWeight: 600 }}>{cs.class?.name}</div>
-          <Text type="secondary" style={{ fontSize: 12 }}>{cs.class?.course_code}</Text>
+          <div style={{ color: '#111111', fontWeight: 600 }}>{cs.class?.name}</div>
+          <Text type="secondary" style={{ fontSize: 12, color: '#6B6B6B' }}>{cs.class?.course_code}</Text>
         </div>
       ),
     },
     {
       title: 'Department',
-      render: (_: any, cs: ClassStudent) => <Text type="secondary">{cs.class?.department ?? '—'}</Text>,
+      width: 150,
+      render: (_: any, cs: ClassStudent) => <span style={{ color: '#6B6B6B' }}>{cs.class?.department ?? '—'}</span>,
     },
     {
-      title: 'Assigned',
+      title: 'Assigned Date',
       dataIndex: 'created_at',
-      render: (val: string) => dayjs(val).format('MMM D, YYYY'),
+      width: 140,
+      render: (val: string) => <span style={{ color: '#6B6B6B' }}>{dayjs(val).format('MMM D, YYYY')}</span>,
     },
   ];
 
@@ -100,7 +108,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
           type="text"
           icon={<ArrowLeftOutlined />}
           onClick={() => router.push('/admin/students')}
-          style={{ color: 'rgba(255,255,255,0.6)', marginBottom: 20 }}
+          style={{ color: '#6B6B6B', marginBottom: 16, padding: 0 }}
         >
           Back to Students
         </Button>
@@ -108,32 +116,38 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         {/* Profile card */}
         <Card
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
             marginBottom: 20,
           }}
-          styles={{ body: { padding: 28 } }}
+          styles={{ body: { padding: 24 } }}
         >
-          <div style={{ display: 'flex', alignItems: 'center', gap: 20, marginBottom: 24 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 16, marginBottom: 20 }}>
             <Avatar
-              size={72}
-              style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', fontSize: 28 }}
+              size={56}
+              style={{ background: '#2563EB', color: '#FFFFFF', fontSize: 22, fontWeight: 700, borderRadius: 0 }}
             >
               {student.name.charAt(0).toUpperCase()}
             </Avatar>
             <div>
-              <Title level={3} style={{ color: '#fff', margin: 0 }}>{student.name}</Title>
-              <Text type="secondary">{student.student_code}</Text>
+              <Title level={3} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>{student.name}</Title>
+              <Text type="secondary" style={{ color: '#6B6B6B' }}>{student.student_code}</Text>
               <div style={{ marginTop: 6 }}>
-                <Tag color={student.status === 'active' ? 'green' : 'default'} style={{ borderRadius: 6 }}>
+                <Tag
+                  color={student.status === 'active' ? 'success' : 'default'}
+                  style={{ borderRadius: 0, fontWeight: 600 }}
+                >
                   {student.status.toUpperCase()}
                 </Tag>
               </div>
             </div>
           </div>
 
-          <Descriptions column={{ xs: 1, sm: 2 }} styles={{ label: { color: 'rgba(255,255,255,0.5)' }, content: { color: '#fff' } }}>
+          <Descriptions
+            column={{ xs: 1, sm: 2, md: 3 }}
+            styles={{ label: { color: '#6B6B6B' }, content: { color: '#111111', fontWeight: 500 } }}
+          >
             <Descriptions.Item label="Email">{student.email}</Descriptions.Item>
             <Descriptions.Item label="Department">{student.department ?? '—'}</Descriptions.Item>
             <Descriptions.Item label="Semester">{student.semester ?? '—'}</Descriptions.Item>
@@ -145,9 +159,9 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
         {/* Tabs */}
         <Card
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
           }}
           styles={{ body: { padding: 0 } }}
         >
@@ -159,30 +173,32 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                 key: 'classes',
                 label: `Classes (${classes.length})`,
                 children: (
-                  <Table
-                    dataSource={classes}
-                    columns={classColumns}
-                    rowKey="id"
-                    size="small"
-                    pagination={false}
-                    locale={{ emptyText: 'Not assigned to any classes' }}
-                    style={{ padding: '0 16px 16px' }}
-                  />
+                  <div style={{ padding: '0 0 16px', overflowX: 'auto' }}>
+                    <SharedTable
+                      dataSource={classes}
+                      columns={classColumns}
+                      rowKey="id"
+                      scroll={{ x: 550 }}
+                      pagination={false}
+                      locale={{ emptyText: 'Not assigned to any classes' }}
+                    />
+                  </div>
                 ),
               },
               {
                 key: 'attendance',
                 label: `Attendance (${attendance.length})`,
                 children: (
-                  <Table
-                    dataSource={attendance}
-                    columns={attendanceColumns}
-                    rowKey="id"
-                    size="small"
-                    pagination={{ pageSize: 10, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
-                    locale={{ emptyText: 'No attendance records' }}
-                    style={{ padding: '0 16px 16px' }}
-                  />
+                  <div style={{ padding: '0 0 16px', overflowX: 'auto' }}>
+                    <SharedTable
+                      dataSource={attendance}
+                      columns={attendanceColumns}
+                      rowKey="id"
+                      scroll={{ x: 550 }}
+                      pagination={{ pageSize: 10, showSizeChanger: false }}
+                      locale={{ emptyText: 'No attendance records' }}
+                    />
+                  </div>
                 ),
               },
             ]}

@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Card, Table, Button, Modal, Form, Input, Tag, Space,
+  Card, Button, Modal, Form, Input, Tag, Space,
   message, Dropdown, Typography, Switch,
 } from 'antd';
 import {
@@ -13,6 +13,7 @@ import type { ColumnsType } from 'antd/es/table';
 import type { CampusNetwork } from '@/lib/types';
 import dayjs from 'dayjs';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
+import SharedTable from '@/components/SharedTable';
 
 const { Title, Text } = Typography;
 
@@ -87,23 +88,25 @@ export default function NetworksPage() {
     {
       title: 'Network',
       key: 'network',
+      width: 260,
       render: (_, n) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
           <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
-            background: 'rgba(99,102,241,0.15)',
+            width: 38,
+            height: 38,
+            borderRadius: 0,
+            background: '#EFF6FF',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
-            color: '#818cf8',
+            color: '#2563EB',
             fontSize: 18,
+            flexShrink: 0,
           }}>
             <WifiOutlined />
           </div>
           <div>
-            <div style={{ color: '#fff', fontWeight: 600 }}>{n.name}</div>
+            <div style={{ color: '#111111', fontWeight: 600 }}>{n.name}</div>
             <Text type="secondary" style={{ fontSize: 12, fontFamily: 'monospace' }}>{n.cidr}</Text>
           </div>
         </div>
@@ -112,19 +115,21 @@ export default function NetworksPage() {
     {
       title: 'Status',
       dataIndex: 'status',
+      width: 120,
       render: (s: string, n) => (
         <Switch
           checked={s === 'active'}
           onChange={() => handleToggle(n.id, s)}
           checkedChildren="Active"
           unCheckedChildren="Off"
-          style={{ background: s === 'active' ? '#10b981' : undefined }}
+          style={{ background: s === 'active' ? '#16A34A' : undefined }}
         />
       ),
     },
     {
       title: 'Added',
       dataIndex: 'created_at',
+      width: 140,
       render: (v: string) => (
         <Text type="secondary" style={{ fontSize: 12 }}>{dayjs(v).format('MMM D, YYYY')}</Text>
       ),
@@ -133,6 +138,7 @@ export default function NetworksPage() {
       title: '',
       key: 'actions',
       width: 60,
+      fixed: 'right' as const,
       render: (_, n) => (
         <Button
           type="text"
@@ -148,9 +154,9 @@ export default function NetworksPage() {
   return (
     <AntdConfigProvider>
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 12 }}>
           <div>
-            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>Campus Networks</Title>
+            <Title level={2} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>Campus Networks</Title>
             <Text type="secondary">Configure allowed IP ranges for attendance submission</Text>
           </div>
           <Button
@@ -158,10 +164,11 @@ export default function NetworksPage() {
             icon={<PlusOutlined />}
             onClick={() => setModalOpen(true)}
             style={{
-              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-              border: 'none',
-              borderRadius: 10,
-              height: 40,
+              background: '#2563EB',
+              borderColor: '#2563EB',
+              color: '#FFFFFF',
+              borderRadius: 0,
+              height: 36,
               fontWeight: 600,
             }}
           >
@@ -171,14 +178,14 @@ export default function NetworksPage() {
 
         <Card
           style={{
-            background: 'rgba(16,185,129,0.05)',
-            border: '1px solid rgba(16,185,129,0.2)',
-            borderRadius: 14,
+            background: '#EFF6FF',
+            border: '1px solid #BFDBFE',
+            borderRadius: 0,
             marginBottom: 20,
           }}
           styles={{ body: { padding: '14px 20px' } }}
         >
-          <Text style={{ color: '#34d399' }}>
+          <Text style={{ color: '#1E40AF' }}>
             💡 Loopback (127.0.0.1) and private ranges (10.x, 192.168.x) are always allowed for local development.
             If no networks are configured, all IPs are allowed.
           </Text>
@@ -186,42 +193,42 @@ export default function NetworksPage() {
 
         <Card
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 14,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
             overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
-          <Table
+          <SharedTable
             dataSource={networks}
             columns={columns}
             rowKey="id"
             loading={loading}
-            size="small"
+            scroll={{ x: 580 }}
             pagination={false}
             locale={{ emptyText: 'No networks configured. All IPs are currently allowed.' }}
           />
         </Card>
 
         <Modal
-          title={<Text strong style={{ color: '#fff', fontSize: 16 }}>Add Campus Network</Text>}
+          title={<Text strong style={{ color: '#111111', fontSize: 16 }}>Add Campus Network</Text>}
           open={modalOpen}
           onCancel={() => { setModalOpen(false); form.resetFields(); }}
           footer={null}
-          styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
+          styles={{ body: { background: '#FFFFFF' }, header: { background: '#FFFFFF' } }}
         >
           <Form form={form} layout="vertical" onFinish={handleCreate} style={{ marginTop: 16 }}>
             <Form.Item
               name="name"
-              label={<Text style={{ color: 'rgba(255,255,255,0.7)' }}>Network Name</Text>}
+              label={<Text style={{ color: '#111111', fontWeight: 500 }}>Network Name</Text>}
               rules={[{ required: true }]}
             >
-              <Input placeholder="e.g. Main Campus WiFi" style={{ borderRadius: 8, height: 40 }} />
+              <Input placeholder="e.g. Main Campus WiFi" style={{ borderRadius: 0, height: 38 }} />
             </Form.Item>
             <Form.Item
               name="cidr"
-              label={<Text style={{ color: 'rgba(255,255,255,0.7)' }}>CIDR Range</Text>}
+              label={<Text style={{ color: '#111111', fontWeight: 500 }}>CIDR Range</Text>}
               rules={[
                 { required: true },
                 {
@@ -232,17 +239,17 @@ export default function NetworksPage() {
             >
               <Input
                 placeholder="e.g. 103.10.20.0/24"
-                style={{ borderRadius: 8, height: 40, fontFamily: 'monospace' }}
+                style={{ borderRadius: 0, height: 38, fontFamily: 'monospace' }}
               />
             </Form.Item>
             <Form.Item style={{ marginBottom: 0, textAlign: 'right' }}>
               <Space>
-                <Button onClick={() => { setModalOpen(false); form.resetFields(); }}>Cancel</Button>
+                <Button style={{ borderRadius: 0 }} onClick={() => { setModalOpen(false); form.resetFields(); }}>Cancel</Button>
                 <Button
                   type="primary"
                   htmlType="submit"
                   loading={saving}
-                  style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', border: 'none', borderRadius: 8 }}
+                  style={{ background: '#2563EB', borderColor: '#2563EB', borderRadius: 0 }}
                 >
                   Add Network
                 </Button>

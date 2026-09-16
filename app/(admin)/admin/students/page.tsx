@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useCallback } from 'react';
 import {
-  Card, Table, Button, Input, Tag, Space, Typography, Modal,
+  Card, Button, Input, Tag, Space, Typography, Modal,
   Upload, Alert, Progress, message, Tooltip, Avatar, Badge,
   Dropdown, Switch, Form, Select, InputNumber, Row, Col, Pagination,
 } from 'antd';
@@ -18,6 +18,7 @@ import type { ColumnsType } from 'antd/es/table';
 import type { Student, CsvStudentRow } from '@/lib/types';
 import { useRouter } from 'next/navigation';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
+import SharedTable from '@/components/SharedTable';
 import dayjs from 'dayjs';
 
 const { Title, Text } = Typography;
@@ -339,22 +340,25 @@ export default function StudentsPage() {
     {
       title: 'Student',
       key: 'student',
+      width: 200,
       render: (_, s) => (
         <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Avatar
             style={{
-              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+              background: '#2563EB',
+              color: '#FFFFFF',
               flexShrink: 0,
               fontSize: 11,
               fontWeight: 600,
+              borderRadius: 0,
             }}
             size={26}
           >
             {s.name.charAt(0).toUpperCase()}
           </Avatar>
-          <div style={{ lineHeight: 1.15 }}>
-            <div style={{ color: '#fff', fontWeight: 600, fontSize: 12.5, lineHeight: 1.2 }}>{s.name}</div>
-            <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, lineHeight: 1.1 }}>{s.student_code}</span>
+          <div style={{ lineHeight: 1.2 }}>
+            <div style={{ color: '#111111', fontWeight: 600, fontSize: 13 }}>{s.name}</div>
+            <span style={{ color: '#6B6B6B', fontSize: 11 }}>{s.student_code}</span>
           </div>
         </div>
       ),
@@ -363,13 +367,15 @@ export default function StudentsPage() {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
-      render: (email: string) => <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>{email}</span>,
+      width: 220,
+      render: (email: string) => <span style={{ color: '#111111', fontSize: 12 }}>{email}</span>,
     },
     {
       title: 'Department / Class Info',
       key: 'dept',
+      width: 180,
       render: (_, s) => (
-        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
+        <span style={{ color: '#6B6B6B', fontSize: 12 }}>
           {[s.department, s.semester && `Sem ${s.semester}`, s.section && `Sec ${s.section}`]
             .filter(Boolean).join(' · ') || '—'}
         </span>
@@ -380,9 +386,20 @@ export default function StudentsPage() {
       dataIndex: 'status',
       key: 'status',
       align: 'center',
-      width: 85,
+      width: 90,
       render: (st: string) => (
-        <Tag color={st === 'active' ? 'green' : 'default'} style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px' }}>
+        <Tag
+          color={st === 'active' ? 'success' : 'default'}
+          style={{
+            fontSize: 10.5,
+            margin: 0,
+            padding: '0 6px',
+            height: 20,
+            lineHeight: '18px',
+            borderRadius: 0,
+            fontWeight: 600,
+          }}
+        >
           {st.toUpperCase()}
         </Tag>
       ),
@@ -392,18 +409,19 @@ export default function StudentsPage() {
       dataIndex: 'created_at',
       key: 'created_at',
       align: 'center',
-      width: 105,
+      width: 110,
       render: (val: string) => (
-        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11.5 }}>
+        <span style={{ color: '#6B6B6B', fontSize: 12 }}>
           {dayjs(val).format('MMM D, YYYY')}
         </span>
       ),
     },
     {
-      title: '',
+      title: 'Action',
       key: 'actions',
-      width: 44,
+      width: 70,
       align: 'center',
+      fixed: 'right' as const,
       render: (_, s) => (
         <Dropdown
           menu={{
@@ -413,7 +431,12 @@ export default function StudentsPage() {
           }}
           trigger={['click']}
         >
-          <Button type="text" size="small" icon={<MoreOutlined />} style={{ color: 'rgba(255,255,255,0.5)', width: 24, height: 24, padding: 0 }} />
+          <Button
+            type="text"
+            size="small"
+            icon={<MoreOutlined />}
+            style={{ color: '#6B6B6B', width: 24, height: 24, padding: 0 }}
+          />
         </Dropdown>
       ),
     },
@@ -443,8 +466,8 @@ export default function StudentsPage() {
         {/* Header with Title & Action Buttons */}
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>Students</Title>
-            <Text type="secondary">{total} registered students total</Text>
+            <Title level={2} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>Students</Title>
+            <Text type="secondary" style={{ color: '#6B6B6B' }}>{total} registered students total</Text>
           </div>
 
           <Space size={10} wrap>
@@ -453,11 +476,11 @@ export default function StudentsPage() {
               icon={<FileExcelOutlined />}
               onClick={downloadSampleXlsx}
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                borderColor: 'rgba(255,255,255,0.12)',
-                color: '#fff',
-                borderRadius: 10,
-                height: 38,
+                background: '#FFFFFF',
+                borderColor: '#E4E4E4',
+                color: '#111111',
+                borderRadius: 0,
+                height: 36,
                 fontWeight: 500,
               }}
             >
@@ -470,11 +493,11 @@ export default function StudentsPage() {
               onClick={exportFilteredStudentsXLSX}
               loading={exportingAll}
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                borderColor: 'rgba(255,255,255,0.12)',
-                color: '#fff',
-                borderRadius: 10,
-                height: 38,
+                background: '#FFFFFF',
+                borderColor: '#E4E4E4',
+                color: '#111111',
+                borderRadius: 0,
+                height: 36,
                 fontWeight: 500,
               }}
             >
@@ -486,11 +509,11 @@ export default function StudentsPage() {
               icon={<PlusOutlined />}
               onClick={() => setAddOpen(true)}
               style={{
-                background: 'rgba(255,255,255,0.08)',
-                borderColor: 'rgba(255,255,255,0.15)',
-                color: '#fff',
-                borderRadius: 10,
-                height: 38,
+                background: '#FFFFFF',
+                borderColor: '#E4E4E4',
+                color: '#111111',
+                borderRadius: 0,
+                height: 36,
                 fontWeight: 600,
               }}
             >
@@ -503,12 +526,12 @@ export default function StudentsPage() {
                 type="primary"
                 icon={<ImportOutlined />}
                 style={{
-                  background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-                  border: 'none',
-                  borderRadius: 10,
-                  height: 38,
+                  background: '#2563EB',
+                  borderColor: '#2563EB',
+                  color: '#FFFFFF',
+                  borderRadius: 0,
+                  height: 36,
                   fontWeight: 600,
-                  boxShadow: '0 4px 14px rgba(99,102,241,0.3)',
                 }}
               >
                 Import Excel / CSV
@@ -520,9 +543,9 @@ export default function StudentsPage() {
         {/* API-Managed Interactive Filters Bar */}
         <Card
           style={{
-            background: 'rgba(255,255,255,0.03)',
-            border: '1px solid rgba(255,255,255,0.07)',
-            borderRadius: 14,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
             marginBottom: 16,
           }}
           styles={{ body: { padding: '14px 16px' } }}
@@ -530,7 +553,7 @@ export default function StudentsPage() {
           <Row gutter={[12, 10]} align="middle">
             <Col xs={24} sm={12} md={7}>
               <Input
-                prefix={<SearchOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                prefix={<SearchOutlined style={{ color: '#6B6B6B' }} />}
                 placeholder="Search name, code, or email…"
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
@@ -538,10 +561,10 @@ export default function StudentsPage() {
                 allowClear
                 style={{
                   height: 36,
-                  background: 'rgba(255,255,255,0.05)',
-                  borderColor: 'rgba(255,255,255,0.1)',
-                  borderRadius: 8,
-                  color: '#fff',
+                  background: '#FFFFFF',
+                  borderColor: '#E4E4E4',
+                  borderRadius: 0,
+                  color: '#111111',
                 }}
               />
             </Col>
@@ -619,9 +642,9 @@ export default function StudentsPage() {
                 style={{
                   flex: 1,
                   height: 36,
-                  borderRadius: 8,
-                  background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-                  border: 'none',
+                  borderRadius: 0,
+                  background: '#2563EB',
+                  borderColor: '#2563EB',
                   fontWeight: 600,
                 }}
               >
@@ -631,10 +654,10 @@ export default function StudentsPage() {
                 onClick={handleResetFilters}
                 style={{
                   height: 36,
-                  borderRadius: 8,
-                  background: 'rgba(255,255,255,0.06)',
-                  borderColor: 'rgba(255,255,255,0.12)',
-                  color: 'rgba(255,255,255,0.8)',
+                  borderRadius: 0,
+                  background: '#FFFFFF',
+                  borderColor: '#E4E4E4',
+                  color: '#111111',
                 }}
               >
                 Reset
@@ -646,20 +669,20 @@ export default function StudentsPage() {
         {/* Compact Table with Standalone Server-Side Pagination */}
         <Card
           style={{
-            background: 'rgba(255,255,255,0.04)',
-            border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 14,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
             overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
-          <Table
+          <SharedTable
             dataSource={students}
             columns={columns}
             rowKey="id"
             loading={loading}
-            size="small"
             pagination={false}
+            scroll={{ x: 870 }}
             locale={{ emptyText: 'No students found matching current filters.' }}
           />
 
@@ -670,13 +693,13 @@ export default function StudentsPage() {
               justifyContent: 'space-between',
               alignItems: 'center',
               padding: '8px 16px',
-              borderTop: '1px solid rgba(255,255,255,0.06)',
+              borderTop: '1px solid #E4E4E4',
               flexWrap: 'wrap',
               gap: 10,
-              background: 'rgba(255,255,255,0.015)',
+              background: '#FAFAFA',
             }}
           >
-            <Text type="secondary" style={{ fontSize: 12 }}>
+            <Text type="secondary" style={{ fontSize: 12, color: '#6B6B6B' }}>
               {total > 0
                 ? `Showing ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total} students`
                 : '0 students'}
@@ -700,24 +723,24 @@ export default function StudentsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2))',
-                  border: '1px solid rgba(99,102,241,0.4)',
+                  width: 32,
+                  height: 32,
+                  borderRadius: 0,
+                  background: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#818cf8',
+                  color: '#2563EB',
                 }}
               >
-                <UserAddOutlined style={{ fontSize: 18 }} />
+                <UserAddOutlined style={{ fontSize: 16 }} />
               </div>
               <div>
-                <Text strong style={{ color: '#fff', fontSize: 16, display: 'block' }}>
+                <Text strong style={{ color: '#111111', fontSize: 16, display: 'block' }}>
                   Add New Student
                 </Text>
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <Text type="secondary" style={{ fontSize: 12, color: '#6B6B6B' }}>
                   Create a student record manually in the directory
                 </Text>
               </div>
@@ -730,7 +753,7 @@ export default function StudentsPage() {
           }}
           footer={null}
           width={580}
-          styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
+          styles={{ body: { background: '#FFFFFF' }, header: { background: '#FFFFFF' } }}
         >
           <Form
             form={addForm}
@@ -742,49 +765,49 @@ export default function StudentsPage() {
             <Row gutter={[16, 0]}>
               <Col xs={24} sm={12}>
                 <Form.Item
-                  label={<span style={{ color: '#fff' }}>Student Code / ID</span>}
+                  label={<span style={{ color: '#111111', fontWeight: 500 }}>Student Code / ID</span>}
                   name="student_code"
                   rules={[{ required: true, message: 'Student code is required' }]}
                 >
-                  <Input placeholder="e.g. STU001" style={{ borderRadius: 8, height: 40 }} />
+                  <Input placeholder="e.g. STU001" style={{ borderRadius: 0, height: 38 }} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={12}>
                 <Form.Item
-                  label={<span style={{ color: '#fff' }}>Full Name</span>}
+                  label={<span style={{ color: '#111111', fontWeight: 500 }}>Full Name</span>}
                   name="name"
                   rules={[{ required: true, message: 'Student name is required' }]}
                 >
-                  <Input placeholder="e.g. John Doe" style={{ borderRadius: 8, height: 40 }} />
+                  <Input placeholder="e.g. John Doe" style={{ borderRadius: 0, height: 38 }} />
                 </Form.Item>
               </Col>
             </Row>
 
             <Form.Item
-              label={<span style={{ color: '#fff' }}>Email Address</span>}
+              label={<span style={{ color: '#111111', fontWeight: 500 }}>Email Address</span>}
               name="email"
               rules={[
                 { required: true, message: 'Email is required' },
                 { type: 'email', message: 'Enter a valid email' },
               ]}
             >
-              <Input placeholder="e.g. john.doe@university.edu" style={{ borderRadius: 8, height: 40 }} />
+              <Input placeholder="e.g. john.doe@university.edu" style={{ borderRadius: 0, height: 38 }} />
             </Form.Item>
 
             <Row gutter={[16, 0]}>
               <Col xs={24} sm={8}>
-                <Form.Item label={<span style={{ color: '#fff' }}>Department</span>} name="department">
-                  <Input placeholder="e.g. CSE" style={{ borderRadius: 8, height: 40 }} />
+                <Form.Item label={<span style={{ color: '#111111', fontWeight: 500 }}>Department</span>} name="department">
+                  <Input placeholder="e.g. CSE" style={{ borderRadius: 0, height: 38 }} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={8}>
-                <Form.Item label={<span style={{ color: '#fff' }}>Semester</span>} name="semester">
-                  <InputNumber min={1} max={12} style={{ width: '100%', borderRadius: 8, height: 40, paddingTop: 4 }} />
+                <Form.Item label={<span style={{ color: '#111111', fontWeight: 500 }}>Semester</span>} name="semester">
+                  <InputNumber min={1} max={12} style={{ width: '100%', borderRadius: 0, height: 38, paddingTop: 4 }} />
                 </Form.Item>
               </Col>
               <Col xs={24} sm={8}>
-                <Form.Item label={<span style={{ color: '#fff' }}>Section</span>} name="section">
-                  <Input placeholder="e.g. A" style={{ borderRadius: 8, height: 40 }} />
+                <Form.Item label={<span style={{ color: '#111111', fontWeight: 500 }}>Section</span>} name="section">
+                  <Input placeholder="e.g. A" style={{ borderRadius: 0, height: 38 }} />
                 </Form.Item>
               </Col>
             </Row>
@@ -795,7 +818,7 @@ export default function StudentsPage() {
                   setAddOpen(false);
                   addForm.resetFields();
                 }}
-                style={{ height: 40, borderRadius: 8 }}
+                style={{ height: 38, borderRadius: 0 }}
               >
                 Cancel
               </Button>
@@ -804,11 +827,11 @@ export default function StudentsPage() {
                 htmlType="submit"
                 loading={addLoading}
                 style={{
-                  background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-                  border: 'none',
-                  borderRadius: 8,
+                  background: '#2563EB',
+                  borderColor: '#2563EB',
+                  borderRadius: 0,
                   fontWeight: 600,
-                  height: 40,
+                  height: 38,
                   padding: '0 24px',
                 }}
               >
@@ -824,24 +847,24 @@ export default function StudentsPage() {
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
               <div
                 style={{
-                  width: 36,
-                  height: 36,
-                  borderRadius: 10,
-                  background: 'linear-gradient(135deg, rgba(99,102,241,0.2), rgba(139,92,246,0.2))',
-                  border: '1px solid rgba(99,102,241,0.4)',
+                  width: 32,
+                  height: 32,
+                  borderRadius: 0,
+                  background: '#EFF6FF',
+                  border: '1px solid #BFDBFE',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  color: '#818cf8',
+                  color: '#2563EB',
                 }}
               >
-                <FileExcelOutlined style={{ fontSize: 18 }} />
+                <FileExcelOutlined style={{ fontSize: 16 }} />
               </div>
               <div>
-                <Text strong style={{ color: '#fff', fontSize: 16, display: 'block' }}>
+                <Text strong style={{ color: '#111111', fontSize: 16, display: 'block' }}>
                   Import Students from Excel (XLSX) or CSV
                 </Text>
-                <Text type="secondary" style={{ fontSize: 12 }}>
+                <Text type="secondary" style={{ fontSize: 12, color: '#6B6B6B' }}>
                   Review and import student records into the directory
                 </Text>
               </div>
@@ -851,22 +874,22 @@ export default function StudentsPage() {
           onCancel={closeImport}
           footer={
             importDone ? (
-              <Button type="primary" onClick={closeImport} style={{ borderRadius: 8, height: 40 }}>
+              <Button type="primary" onClick={closeImport} style={{ borderRadius: 0, height: 38, background: '#2563EB' }}>
                 Done
               </Button>
             ) : (
               <Space>
-                <Button onClick={closeImport} style={{ borderRadius: 8, height: 40 }}>Cancel</Button>
+                <Button onClick={closeImport} style={{ borderRadius: 0, height: 38 }}>Cancel</Button>
                 <Button
                   type="primary"
                   loading={importing}
                   disabled={validCount === 0}
                   onClick={handleImport}
                   style={{
-                    background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-                    border: 'none',
-                    borderRadius: 8,
-                    height: 40,
+                    background: '#2563EB',
+                    borderColor: '#2563EB',
+                    borderRadius: 0,
+                    height: 38,
                     fontWeight: 600,
                   }}
                 >
@@ -876,17 +899,17 @@ export default function StudentsPage() {
             )
           }
           width={760}
-          styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
+          styles={{ body: { background: '#FFFFFF' }, header: { background: '#FFFFFF' } }}
         >
           {/* Summary */}
           <div style={{ display: 'flex', gap: 12, marginBottom: 16 }}>
-            <Tag color="green" style={{ borderRadius: 6, padding: '4px 10px' }}>
+            <Tag color="success" style={{ borderRadius: 0, padding: '4px 10px', fontWeight: 600 }}>
               <CheckCircleOutlined /> Valid: {validCount}
             </Tag>
-            <Tag color="orange" style={{ borderRadius: 6, padding: '4px 10px' }}>
+            <Tag color="warning" style={{ borderRadius: 0, padding: '4px 10px', fontWeight: 600 }}>
               <WarningOutlined /> Duplicates: {dupCount}
             </Tag>
-            <Tag color="red" style={{ borderRadius: 6, padding: '4px 10px' }}>
+            <Tag color="error" style={{ borderRadius: 0, padding: '4px 10px', fontWeight: 600 }}>
               <CloseCircleOutlined /> Invalid: {invalidCount}
             </Tag>
           </div>
@@ -894,15 +917,15 @@ export default function StudentsPage() {
           <Alert
             type="info"
             message="Required columns: student_code, name, email. Optional: department, semester, section (.xlsx and .csv supported)"
-            style={{ borderRadius: 8, marginBottom: 16 }}
+            style={{ borderRadius: 0, marginBottom: 16 }}
           />
 
-          <Table
+          <SharedTable
             dataSource={csvPreview}
             columns={previewColumns}
             rowKey={(r) => r.email || Math.random().toString()}
             pagination={{ pageSize: 8, showSizeChanger: false }}
-            size="small"
+            scroll={{ x: 600 }}
             rowClassName={(r) =>
               r._status === 'valid' ? '' : r._status === 'duplicate' ? 'row-warning' : 'row-error'
             }

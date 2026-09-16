@@ -142,12 +142,11 @@ export default function LoginPage() {
         <Card
           style={{
             width: '100%',
-            maxWidth: 450,
-            background: 'rgba(255,255,255,0.05)',
-            backdropFilter: 'blur(20px)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 24,
-            boxShadow: '0 25px 50px rgba(0,0,0,0.5)',
+            maxWidth: 440,
+            background: '#FFFFFF',
+            border: '1px solid #E4E4E4',
+            borderRadius: 0,
+            boxShadow: 'none',
           }}
           styles={{ body: { padding: '36px 32px' } }}
         >
@@ -157,19 +156,18 @@ export default function LoginPage() {
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
-              width: 58,
-              height: 58,
-              borderRadius: 16,
-              background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
+              width: 52,
+              height: 52,
+              borderRadius: 0,
+              background: '#2563EB',
               marginBottom: 12,
-              boxShadow: '0 8px 24px rgba(99,102,241,0.4)',
             }}>
-              <BookOutlined style={{ fontSize: 26, color: '#fff' }} />
+              <BookOutlined style={{ fontSize: 24, color: '#FFFFFF' }} />
             </div>
-            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700, letterSpacing: -0.5 }}>
+            <Title level={2} style={{ color: '#111111', margin: 0, fontWeight: 700, letterSpacing: -0.5 }}>
               Rollin
             </Title>
-            <Text style={{ color: 'rgba(255,255,255,0.5)', fontSize: 13 }}>
+            <Text style={{ color: '#6B6B6B', fontSize: 13 }}>
               Class Attendance System
             </Text>
           </div>
@@ -189,9 +187,9 @@ export default function LoginPage() {
                 { label: 'Activate Account', value: 'activate' },
               ]}
               style={{
-                background: 'rgba(255,255,255,0.06)',
+                background: '#F4F4F5',
                 padding: 4,
-                borderRadius: 12,
+                borderRadius: 0,
               }}
             />
           </div>
@@ -200,7 +198,7 @@ export default function LoginPage() {
             <Alert
               message={error}
               type="error"
-              style={{ marginBottom: 20, borderRadius: 10 }}
+              style={{ marginBottom: 20, borderRadius: 0 }}
               closable
               onClose={() => setError(null)}
             />
@@ -212,7 +210,7 @@ export default function LoginPage() {
               type="success"
               icon={<CheckCircleOutlined />}
               showIcon
-              style={{ marginBottom: 20, borderRadius: 10 }}
+              style={{ marginBottom: 20, borderRadius: 0 }}
             />
           )}
 
@@ -234,14 +232,14 @@ export default function LoginPage() {
                 ]}
               >
                 <Input
-                  prefix={<MailOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                  prefix={<MailOutlined style={{ color: '#6B6B6B' }} />}
                   placeholder="University Email Address"
                   style={{
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: 12,
-                    color: '#fff',
-                    height: 48,
+                    background: '#FFFFFF',
+                    border: '1px solid #E4E4E4',
+                    borderRadius: 0,
+                    color: '#111111',
+                    height: 44,
                   }}
                 />
               </Form.Item>
@@ -251,14 +249,14 @@ export default function LoginPage() {
                 rules={[{ required: true, message: 'Please enter your password' }]}
               >
                 <Input.Password
-                  prefix={<LockOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                  prefix={<LockOutlined style={{ color: '#6B6B6B' }} />}
                   placeholder="Password"
                   style={{
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: 12,
-                    color: '#fff',
-                    height: 48,
+                    background: '#FFFFFF',
+                    border: '1px solid #E4E4E4',
+                    borderRadius: 0,
+                    color: '#111111',
+                    height: 44,
                   }}
                 />
               </Form.Item>
@@ -270,13 +268,12 @@ export default function LoginPage() {
                   loading={loading}
                   block
                   style={{
-                    height: 48,
-                    borderRadius: 12,
-                    fontSize: 16,
+                    height: 44,
+                    borderRadius: 0,
+                    fontSize: 15,
                     fontWeight: 600,
-                    background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                    border: 'none',
-                    boxShadow: '0 8px 24px rgba(99,102,241,0.4)',
+                    background: '#2563EB',
+                    borderColor: '#2563EB',
                   }}
                 >
                   {loading ? 'Signing in…' : 'Sign In'}
@@ -284,14 +281,14 @@ export default function LoginPage() {
               </Form.Item>
 
               <div style={{ textAlign: 'center' }}>
-                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+                <Text style={{ color: '#6B6B6B', fontSize: 13 }}>
                   First time logging in?{' '}
                   <a
                     onClick={() => {
                       setMode('activate');
                       setError(null);
                     }}
-                    style={{ color: '#818cf8', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ color: '#2563EB', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Activate your account
                   </a>
@@ -309,13 +306,13 @@ export default function LoginPage() {
               size="large"
             >
               <div style={{
-                background: 'rgba(99,102,241,0.12)',
-                border: '1px solid rgba(99,102,241,0.25)',
-                borderRadius: 12,
+                background: '#EFF6FF',
+                border: '1px solid #BFDBFE',
+                borderRadius: 0,
                 padding: '12px 16px',
                 marginBottom: 20,
               }}>
-                <Text style={{ color: '#c7d2fe', fontSize: 13 }}>
+                <Text style={{ color: '#1E40AF', fontSize: 13 }}>
                   Enter your assigned <strong>Student ID</strong> and <strong>Email</strong> to set your personal password.
                 </Text>
               </div>
@@ -325,14 +322,14 @@ export default function LoginPage() {
                 rules={[{ required: true, message: 'Please enter your Student ID / Roll No' }]}
               >
                 <Input
-                  prefix={<IdcardOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                  prefix={<IdcardOutlined style={{ color: '#6B6B6B' }} />}
                   placeholder="Student ID / Roll No (e.g. STU001)"
                   style={{
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: 12,
-                    color: '#fff',
-                    height: 48,
+                    background: '#FFFFFF',
+                    border: '1px solid #E4E4E4',
+                    borderRadius: 0,
+                    color: '#111111',
+                    height: 44,
                   }}
                 />
               </Form.Item>
@@ -345,14 +342,14 @@ export default function LoginPage() {
                 ]}
               >
                 <Input
-                  prefix={<MailOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                  prefix={<MailOutlined style={{ color: '#6B6B6B' }} />}
                   placeholder="Registered University Email"
                   style={{
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: 12,
-                    color: '#fff',
-                    height: 48,
+                    background: '#FFFFFF',
+                    border: '1px solid #E4E4E4',
+                    borderRadius: 0,
+                    color: '#111111',
+                    height: 44,
                   }}
                 />
               </Form.Item>
@@ -365,14 +362,14 @@ export default function LoginPage() {
                 ]}
               >
                 <Input.Password
-                  prefix={<LockOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                  prefix={<LockOutlined style={{ color: '#6B6B6B' }} />}
                   placeholder="Create Password (min. 6 chars)"
                   style={{
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: 12,
-                    color: '#fff',
-                    height: 48,
+                    background: '#FFFFFF',
+                    border: '1px solid #E4E4E4',
+                    borderRadius: 0,
+                    color: '#111111',
+                    height: 44,
                   }}
                 />
               </Form.Item>
@@ -382,14 +379,14 @@ export default function LoginPage() {
                 rules={[{ required: true, message: 'Please confirm your password' }]}
               >
                 <Input.Password
-                  prefix={<LockOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                  prefix={<LockOutlined style={{ color: '#6B6B6B' }} />}
                   placeholder="Confirm Password"
                   style={{
-                    background: 'rgba(255,255,255,0.07)',
-                    border: '1px solid rgba(255,255,255,0.12)',
-                    borderRadius: 12,
-                    color: '#fff',
-                    height: 48,
+                    background: '#FFFFFF',
+                    border: '1px solid #E4E4E4',
+                    borderRadius: 0,
+                    color: '#111111',
+                    height: 44,
                   }}
                 />
               </Form.Item>
@@ -401,13 +398,12 @@ export default function LoginPage() {
                   loading={loading}
                   block
                   style={{
-                    height: 48,
-                    borderRadius: 12,
-                    fontSize: 16,
+                    height: 44,
+                    borderRadius: 0,
+                    fontSize: 15,
                     fontWeight: 600,
-                    background: 'linear-gradient(135deg, #10b981, #059669)',
-                    border: 'none',
-                    boxShadow: '0 8px 24px rgba(16,185,129,0.35)',
+                    background: '#2563EB',
+                    borderColor: '#2563EB',
                   }}
                 >
                   {loading ? 'Activating…' : 'Activate & Sign In'}
@@ -415,14 +411,14 @@ export default function LoginPage() {
               </Form.Item>
 
               <div style={{ textAlign: 'center' }}>
-                <Text style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+                <Text style={{ color: '#6B6B6B', fontSize: 13 }}>
                   Already activated?{' '}
                   <a
                     onClick={() => {
                       setMode('signin');
                       setError(null);
                     }}
-                    style={{ color: '#818cf8', fontWeight: 600, cursor: 'pointer' }}
+                    style={{ color: '#2563EB', fontWeight: 600, cursor: 'pointer' }}
                   >
                     Sign in here
                   </a>

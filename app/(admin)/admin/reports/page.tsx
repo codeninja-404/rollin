@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState, useMemo } from 'react';
 import {
-  Card, Table, Typography, Progress, Tag, Select, Tabs, Input, Button,
+  Card, Typography, Progress, Tag, Select, Tabs, Input, Button,
   Row, Col, Statistic, Space, Empty, message, Tooltip,
 } from 'antd';
 import {
@@ -14,6 +14,7 @@ import {
 import type { ColumnsType } from 'antd/es/table';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
 import StylishLoader from '@/components/StylishLoader';
+import SharedTable from '@/components/SharedTable';
 import dayjs from 'dayjs';
 import * as XLSX from 'xlsx';
 
@@ -357,12 +358,13 @@ export default function ReportsPage() {
     {
       title: 'Student',
       key: 'student',
+      width: 220,
       render: (_, r) => (
         <div style={{ lineHeight: 1.15 }}>
-          <div style={{ color: '#fff', fontWeight: 600, fontSize: 12.5, lineHeight: 1.2 }}>{r.student_name}</div>
+          <div style={{ color: '#111111', fontWeight: 600, fontSize: 12.5, lineHeight: 1.2 }}>{r.student_name}</div>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 1 }}>
-            <span style={{ color: '#818cf8', fontFamily: 'monospace', fontSize: 11 }}>{r.student_code}</span>
-            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>· {r.email}</span>
+            <span style={{ color: '#2563EB', fontFamily: 'monospace', fontSize: 11 }}>{r.student_code}</span>
+            <span style={{ color: '#6B6B6B', fontSize: 11 }}>· {r.email}</span>
           </div>
         </div>
       ),
@@ -370,14 +372,15 @@ export default function ReportsPage() {
     {
       title: 'Class / Course',
       key: 'class',
+      width: 200,
       render: (_, r) => (
         <div style={{ lineHeight: 1.15 }}>
-          <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontSize: 12.5 }}>{r.class_name}</span>
+          <span style={{ color: '#111111', fontWeight: 500, fontSize: 12.5 }}>{r.class_name}</span>
           <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 1 }}>
-            <Tag color="geekblue" style={{ borderRadius: 4, fontSize: 10, margin: 0, padding: '0 4px', height: 18, lineHeight: '16px' }}>
+            <Tag color="geekblue" style={{ borderRadius: 0, fontSize: 10, margin: 0, padding: '0 4px', height: 18, lineHeight: '16px' }}>
               {r.course_code}
             </Tag>
-            <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11 }}>{r.department}</span>
+            <span style={{ color: '#6B6B6B', fontSize: 11 }}>{r.department}</span>
           </div>
         </div>
       ),
@@ -386,16 +389,17 @@ export default function ReportsPage() {
       title: 'Attended / Sessions',
       key: 'counts',
       align: 'center',
+      width: 140,
       render: (_, r) => (
         <div style={{ textAlign: 'center', lineHeight: 1.15 }}>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 13 }}>
+          <span style={{ color: '#111111', fontWeight: 700, fontSize: 13 }}>
             {r.present}
           </span>
-          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
+          <span style={{ color: '#6B6B6B', fontSize: 12 }}>
             {' '}/ {r.sessions}
           </span>
           {r.missed > 0 && (
-            <div style={{ color: '#f87171', fontSize: 10.5 }}>
+            <div style={{ color: '#DC2626', fontSize: 10.5 }}>
               {r.missed} missed
             </div>
           )}
@@ -406,16 +410,17 @@ export default function ReportsPage() {
       title: 'Attendance Rate',
       dataIndex: 'percent',
       key: 'percent',
+      width: 170,
       sorter: (a, b) => a.percent - b.percent,
-      render: (v: number, r) => {
-        const color = v >= 75 ? '#10b981' : v >= 50 ? '#f59e0b' : '#ef4444';
+      render: (v: number) => {
+        const color = v >= 75 ? '#16A34A' : v >= 50 ? '#D97706' : '#DC2626';
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 130 }}>
             <Progress
               percent={v}
               size="small"
               strokeColor={color}
-              railColor="rgba(255,255,255,0.08)"
+              railColor="#E4E4E4"
               showInfo={false}
               style={{ flex: 1, marginBottom: 0 }}
             />
@@ -430,18 +435,18 @@ export default function ReportsPage() {
       title: 'Status',
       key: 'status',
       align: 'center',
-      width: 90,
+      width: 100,
       render: (_, r) => {
         if (r.sessions === 0) {
-          return <Tag style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px' }}>No Sessions</Tag>;
+          return <Tag style={{ borderRadius: 0, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px' }}>No Sessions</Tag>;
         }
         if (r.status_tier === 'good') {
-          return <Tag color="success" style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}>Good</Tag>;
+          return <Tag color="success" style={{ borderRadius: 0, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}>Good</Tag>;
         }
         if (r.status_tier === 'warning') {
-          return <Tag color="warning" style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}>Warning</Tag>;
+          return <Tag color="warning" style={{ borderRadius: 0, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}>Warning</Tag>;
         }
-        return <Tag color="error" style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}>Critical (&lt;50%)</Tag>;
+        return <Tag color="error" style={{ borderRadius: 0, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}>Critical (&lt;50%)</Tag>;
       },
     },
   ];
@@ -451,11 +456,12 @@ export default function ReportsPage() {
     {
       title: 'Course / Class',
       key: 'class',
+      width: 250,
       render: (_, r) => (
         <div>
-          <div style={{ color: '#fff', fontWeight: 600, fontSize: 15 }}>{r.class_name}</div>
+          <div style={{ color: '#111111', fontWeight: 600, fontSize: 14 }}>{r.class_name}</div>
           <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginTop: 4 }}>
-            <Tag color="purple" style={{ borderRadius: 4, fontSize: 11, margin: 0 }}>
+            <Tag color="purple" style={{ borderRadius: 0, fontSize: 11, margin: 0 }}>
               {r.course_code}
             </Tag>
             <Text type="secondary" style={{ fontSize: 12 }}>
@@ -471,37 +477,41 @@ export default function ReportsPage() {
       title: 'Enrolled Students',
       dataIndex: 'total_students',
       align: 'center',
-      render: (v: number) => <span style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>{v}</span>,
+      width: 140,
+      render: (v: number) => <span style={{ color: '#111111', fontWeight: 600, fontSize: 13 }}>{v}</span>,
     },
     {
       title: 'Sessions Held',
       dataIndex: 'total_sessions',
       align: 'center',
-      render: (v: number) => <span style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>{v}</span>,
+      width: 130,
+      render: (v: number) => <span style={{ color: '#111111', fontWeight: 600, fontSize: 13 }}>{v}</span>,
     },
     {
       title: 'Total Check-Ins',
       dataIndex: 'total_attendances',
       align: 'center',
-      render: (v: number) => <span style={{ color: '#818cf8', fontWeight: 600, fontSize: 14 }}>{v}</span>,
+      width: 140,
+      render: (v: number) => <span style={{ color: '#2563EB', fontWeight: 600, fontSize: 13 }}>{v}</span>,
     },
     {
       title: 'Average Attendance',
       dataIndex: 'avg_percent',
+      width: 180,
       sorter: (a, b) => a.avg_percent - b.avg_percent,
       render: (v: number) => {
-        const color = v >= 75 ? '#10b981' : v >= 50 ? '#f59e0b' : '#ef4444';
+        const color = v >= 75 ? '#16A34A' : v >= 50 ? '#D97706' : '#DC2626';
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 160 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 150 }}>
             <Progress
               percent={v}
               size="small"
               strokeColor={color}
-              railColor="rgba(255,255,255,0.08)"
+              railColor="#E4E4E4"
               showInfo={false}
               style={{ flex: 1 }}
             />
-            <span style={{ color, fontWeight: 700, fontSize: 14, minWidth: 42, textAlign: 'right' }}>
+            <span style={{ color, fontWeight: 700, fontSize: 13, minWidth: 40, textAlign: 'right' }}>
               {v}%
             </span>
           </div>
@@ -515,9 +525,10 @@ export default function ReportsPage() {
     {
       title: 'Date & Time',
       key: 'date',
+      width: 180,
       render: (_, r) => (
         <div>
-          <div style={{ color: '#fff', fontWeight: 600 }}>
+          <div style={{ color: '#111111', fontWeight: 600 }}>
             {dayjs(r.started_at).format('MMM D, YYYY')}
           </div>
           <Text type="secondary" style={{ fontSize: 12 }}>
@@ -530,10 +541,11 @@ export default function ReportsPage() {
     {
       title: 'Class',
       key: 'class',
+      width: 220,
       render: (_, r) => (
         <div>
-          <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>{r.class_name}</span>
-          <Tag color="cyan" style={{ borderRadius: 4, fontSize: 11, marginLeft: 8 }}>
+          <span style={{ color: '#111111', fontWeight: 500 }}>{r.class_name}</span>
+          <Tag color="cyan" style={{ borderRadius: 0, fontSize: 11, marginLeft: 8 }}>
             {r.course_code}
           </Tag>
         </div>
@@ -543,26 +555,28 @@ export default function ReportsPage() {
       title: 'Present / Enrolled',
       key: 'present',
       align: 'center',
+      width: 160,
       render: (_, r) => (
         <div style={{ textAlign: 'center' }}>
-          <span style={{ color: '#10b981', fontWeight: 700, fontSize: 14 }}>{r.present_count}</span>
-          <span style={{ color: 'rgba(255,255,255,0.4)' }}> / {r.total_enrolled}</span>
+          <span style={{ color: '#16A34A', fontWeight: 700, fontSize: 14 }}>{r.present_count}</span>
+          <span style={{ color: '#6B6B6B' }}> / {r.total_enrolled}</span>
         </div>
       ),
     },
     {
       title: 'Turnout Rate',
       dataIndex: 'percent',
+      width: 170,
       sorter: (a, b) => a.percent - b.percent,
       render: (v: number) => {
-        const color = v >= 75 ? '#10b981' : v >= 50 ? '#f59e0b' : '#ef4444';
+        const color = v >= 75 ? '#16A34A' : v >= 50 ? '#D97706' : '#DC2626';
         return (
           <div style={{ display: 'flex', alignItems: 'center', gap: 10, minWidth: 140 }}>
             <Progress
               percent={v}
               size="small"
               strokeColor={color}
-              railColor="rgba(255,255,255,0.08)"
+              railColor="#E4E4E4"
               showInfo={false}
               style={{ flex: 1 }}
             />
@@ -575,8 +589,9 @@ export default function ReportsPage() {
       title: 'Status',
       key: 'status',
       align: 'center',
+      width: 110,
       render: (_, r) => (
-        <Tag color={r.status === 'open' ? 'processing' : 'default'} style={{ borderRadius: 6 }}>
+        <Tag color={r.status === 'open' ? 'processing' : 'default'} style={{ borderRadius: 0 }}>
           {r.status === 'open' ? 'Live Open' : 'Closed'}
         </Tag>
       ),
@@ -585,6 +600,8 @@ export default function ReportsPage() {
       title: 'Export',
       key: 'action',
       align: 'center',
+      width: 120,
+      fixed: 'right' as const,
       render: (_, r) => (
         <Button
           size="small"
@@ -592,10 +609,10 @@ export default function ReportsPage() {
           loading={exportingSessionId === r.session_id}
           onClick={() => exportSingleSessionXLSX(r)}
           style={{
-            background: 'rgba(99, 102, 241, 0.12)',
-            borderColor: 'rgba(99, 102, 241, 0.3)',
-            color: '#a5b4fc',
-            borderRadius: 6,
+            background: '#EFF6FF',
+            borderColor: '#BFDBFE',
+            color: '#2563EB',
+            borderRadius: 0,
             fontWeight: 500,
           }}
         >
@@ -606,9 +623,9 @@ export default function ReportsPage() {
   ];
 
   const statCardStyle = {
-    background: 'rgba(255,255,255,0.04)',
-    border: '1px solid rgba(255,255,255,0.08)',
-    borderRadius: 16,
+    background: '#FFFFFF',
+    border: '1px solid #E4E4E4',
+    borderRadius: 0,
     height: '100%',
   };
 
@@ -625,7 +642,7 @@ export default function ReportsPage() {
           gap: 16,
         }}>
           <div>
-            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>
+            <Title level={2} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>
               Attendance Reports
             </Title>
             <Text type="secondary">
@@ -639,11 +656,11 @@ export default function ReportsPage() {
               onClick={loadData}
               loading={loading}
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                borderColor: 'rgba(255,255,255,0.12)',
-                color: '#fff',
-                borderRadius: 10,
-                height: 38,
+                background: '#FFFFFF',
+                borderColor: '#E4E4E4',
+                color: '#111111',
+                borderRadius: 0,
+                height: 36,
               }}
             >
               Refresh
@@ -652,11 +669,11 @@ export default function ReportsPage() {
               icon={<FileExcelOutlined />}
               onClick={exportClassesXLSX}
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                borderColor: 'rgba(255,255,255,0.12)',
-                color: '#fff',
-                borderRadius: 10,
-                height: 38,
+                background: '#FFFFFF',
+                borderColor: '#E4E4E4',
+                color: '#111111',
+                borderRadius: 0,
+                height: 36,
                 fontWeight: 500,
               }}
             >
@@ -666,11 +683,11 @@ export default function ReportsPage() {
               icon={<FileExcelOutlined />}
               onClick={exportSessionsSummaryXLSX}
               style={{
-                background: 'rgba(255,255,255,0.06)',
-                borderColor: 'rgba(255,255,255,0.12)',
-                color: '#fff',
-                borderRadius: 10,
-                height: 38,
+                background: '#FFFFFF',
+                borderColor: '#E4E4E4',
+                color: '#111111',
+                borderRadius: 0,
+                height: 36,
                 fontWeight: 500,
               }}
             >
@@ -681,12 +698,12 @@ export default function ReportsPage() {
               icon={<DownloadOutlined />}
               onClick={exportStudentsXLSX}
               style={{
-                background: 'linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%)',
-                border: 'none',
-                borderRadius: 10,
-                height: 38,
+                background: '#2563EB',
+                borderColor: '#2563EB',
+                color: '#FFFFFF',
+                borderRadius: 0,
+                height: 36,
                 fontWeight: 600,
-                boxShadow: '0 4px 14px rgba(99, 102, 241, 0.35)',
               }}
             >
               Export Student Report (XLSX)
@@ -713,7 +730,7 @@ export default function ReportsPage() {
                       <div style={{
                         fontSize: 28,
                         fontWeight: 800,
-                        color: kpis.overallRate >= 75 ? '#34d399' : kpis.overallRate >= 50 ? '#fbbf24' : '#f87171',
+                        color: kpis.overallRate >= 75 ? '#16A34A' : kpis.overallRate >= 50 ? '#D97706' : '#DC2626',
                         marginTop: 4,
                       }}>
                         {kpis.overallRate}%
@@ -722,12 +739,12 @@ export default function ReportsPage() {
                     <div style={{
                       width: 46,
                       height: 46,
-                      borderRadius: 12,
-                      background: 'rgba(16, 185, 129, 0.15)',
+                      borderRadius: 0,
+                      background: '#F0FDF4',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#34d399',
+                      color: '#16A34A',
                       fontSize: 22,
                     }}>
                       <BarChartOutlined />
@@ -743,19 +760,19 @@ export default function ReportsPage() {
                       <Text type="secondary" style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                         Students Enrolled
                       </Text>
-                      <div style={{ fontSize: 28, fontWeight: 800, color: '#fff', marginTop: 4 }}>
+                      <div style={{ fontSize: 28, fontWeight: 800, color: '#111111', marginTop: 4 }}>
                         {kpis.totalStudentsEnrolled}
                       </div>
                     </div>
                     <div style={{
                       width: 46,
                       height: 46,
-                      borderRadius: 12,
-                      background: 'rgba(99, 102, 241, 0.15)',
+                      borderRadius: 0,
+                      background: '#EFF6FF',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#818cf8',
+                      color: '#2563EB',
                       fontSize: 22,
                     }}>
                       <UserOutlined />
@@ -771,19 +788,19 @@ export default function ReportsPage() {
                       <Text type="secondary" style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 0.5 }}>
                         Sessions Conducted
                       </Text>
-                      <div style={{ fontSize: 28, fontWeight: 800, color: '#fff', marginTop: 4 }}>
+                      <div style={{ fontSize: 28, fontWeight: 800, color: '#111111', marginTop: 4 }}>
                         {kpis.totalSessions}
                       </div>
                     </div>
                     <div style={{
                       width: 46,
                       height: 46,
-                      borderRadius: 12,
-                      background: 'rgba(236, 72, 153, 0.15)',
+                      borderRadius: 0,
+                      background: '#FDF2F8',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#f472b6',
+                      color: '#DB2777',
                       fontSize: 22,
                     }}>
                       <ClockCircleOutlined />
@@ -802,7 +819,7 @@ export default function ReportsPage() {
                       <div style={{
                         fontSize: 28,
                         fontWeight: 800,
-                        color: kpis.atRiskCount > 0 ? '#f87171' : '#34d399',
+                        color: kpis.atRiskCount > 0 ? '#DC2626' : '#16A34A',
                         marginTop: 4,
                       }}>
                         {kpis.atRiskCount}
@@ -811,12 +828,12 @@ export default function ReportsPage() {
                     <div style={{
                       width: 46,
                       height: 46,
-                      borderRadius: 12,
-                      background: 'rgba(239, 68, 68, 0.15)',
+                      borderRadius: 0,
+                      background: '#FEF2F2',
                       display: 'flex',
                       alignItems: 'center',
                       justifyContent: 'center',
-                      color: '#f87171',
+                      color: '#DC2626',
                       fontSize: 22,
                     }}>
                       <AlertOutlined />
@@ -829,16 +846,16 @@ export default function ReportsPage() {
             {/* Interactive Filters Bar */}
             <Card
               style={{
-                background: 'rgba(255,255,255,0.03)',
-                border: '1px solid rgba(255,255,255,0.07)',
-                borderRadius: 16,
+                background: '#FFFFFF',
+                border: '1px solid #E4E4E4',
+                borderRadius: 0,
                 marginBottom: 20,
               }}
               styles={{ body: { padding: '16px 20px' } }}
             >
               <Row gutter={[16, 12]} align="middle">
                 <Col xs={24} sm={12} md={6}>
-                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, display: 'block', marginBottom: 4 }}>
+                  <Text style={{ color: '#6B6B6B', fontSize: 12, display: 'block', marginBottom: 4 }}>
                     Filter by Course
                   </Text>
                   <Select
@@ -857,7 +874,7 @@ export default function ReportsPage() {
                 </Col>
 
                 <Col xs={24} sm={12} md={5}>
-                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, display: 'block', marginBottom: 4 }}>
+                  <Text style={{ color: '#6B6B6B', fontSize: 12, display: 'block', marginBottom: 4 }}>
                     Filter by Department
                   </Text>
                   <Select
@@ -874,7 +891,7 @@ export default function ReportsPage() {
                 </Col>
 
                 <Col xs={24} sm={12} md={5}>
-                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, display: 'block', marginBottom: 4 }}>
+                  <Text style={{ color: '#6B6B6B', fontSize: 12, display: 'block', marginBottom: 4 }}>
                     Attendance Status
                   </Text>
                   <Select
@@ -890,11 +907,11 @@ export default function ReportsPage() {
                 </Col>
 
                 <Col xs={24} sm={12} md={8}>
-                  <Text style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12, display: 'block', marginBottom: 4 }}>
+                  <Text style={{ color: '#6B6B6B', fontSize: 12, display: 'block', marginBottom: 4 }}>
                     Search Student
                   </Text>
                   <Input
-                    prefix={<SearchOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                    prefix={<SearchOutlined style={{ color: '#6B6B6B' }} />}
                     placeholder="Search by student name or ID…"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
@@ -907,9 +924,9 @@ export default function ReportsPage() {
             {/* Reports Tabs */}
             <Card
               style={{
-                background: 'rgba(255,255,255,0.04)',
-                border: '1px solid rgba(255,255,255,0.08)',
-                borderRadius: 16,
+                background: '#FFFFFF',
+                border: '1px solid #E4E4E4',
+                borderRadius: 0,
               }}
               styles={{ body: { padding: 0 } }}
             >
@@ -921,14 +938,13 @@ export default function ReportsPage() {
                     key: 'students',
                     label: `Student Roster Analytics (${filteredStudents.length})`,
                     children: (
-                      <Table
+                      <SharedTable
                         dataSource={filteredStudents}
                         columns={studentColumns}
                         rowKey={(r) => `${r.student_id}-${r.class_id}`}
-                        size="small"
-                        pagination={{ pageSize: 15, showSizeChanger: true, pageSizeOptions: ['15', '30', '50'], style: { padding: '8px 16px', margin: 0 } }}
+                        scroll={{ x: 860 }}
+                        pagination={{ pageSize: 15, showSizeChanger: true, pageSizeOptions: ['15', '30', '50'] }}
                         locale={{ emptyText: <Empty description="No student records match the selected filters" /> }}
-                        style={{ padding: '0 0 8px' }}
                       />
                     ),
                   },
@@ -936,14 +952,13 @@ export default function ReportsPage() {
                     key: 'classes',
                     label: `Class Summaries (${filteredClasses.length})`,
                     children: (
-                      <Table
+                      <SharedTable
                         dataSource={filteredClasses}
                         columns={classColumns}
                         rowKey="class_id"
-                        size="small"
-                        pagination={{ pageSize: 15, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
+                        scroll={{ x: 820 }}
+                        pagination={{ pageSize: 15, showSizeChanger: false }}
                         locale={{ emptyText: <Empty description="No class data available" /> }}
-                        style={{ padding: '0 0 8px' }}
                       />
                     ),
                   },
@@ -957,23 +972,23 @@ export default function ReportsPage() {
                           justifyContent: 'space-between',
                           alignItems: 'center',
                           padding: '10px 16px',
-                          borderBottom: '1px solid rgba(255,255,255,0.06)',
+                          borderBottom: '1px solid #E4E4E4',
                           marginBottom: 10,
                           flexWrap: 'wrap',
                           gap: 10,
                         }}>
                           <Text type="secondary" style={{ fontSize: 12 }}>
-                            {filteredSessions.length} session records found — click <strong style={{ color: '#a5b4fc' }}>Export XLSX</strong> on any row to download full student attendee rosters
+                            {filteredSessions.length} session records found — click <strong style={{ color: '#2563EB' }}>Export XLSX</strong> on any row to download full student attendee rosters
                           </Text>
                           <Button
                             size="small"
                             icon={<FileExcelOutlined />}
                             onClick={exportSessionsSummaryXLSX}
                             style={{
-                              background: 'rgba(99,102,241,0.15)',
-                              borderColor: 'rgba(99,102,241,0.3)',
-                              color: '#fff',
-                              borderRadius: 8,
+                              background: '#FFFFFF',
+                              borderColor: '#E4E4E4',
+                              color: '#111111',
+                              borderRadius: 0,
                               height: 28,
                               fontSize: 12,
                               fontWeight: 500,
@@ -982,12 +997,12 @@ export default function ReportsPage() {
                             Export All Sessions (XLSX)
                           </Button>
                         </div>
-                        <Table
+                        <SharedTable
                           dataSource={filteredSessions}
                           columns={sessionColumns}
                           rowKey="session_id"
-                          size="small"
-                          pagination={{ pageSize: 15, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
+                          scroll={{ x: 920 }}
+                          pagination={{ pageSize: 15, showSizeChanger: false }}
                           locale={{ emptyText: <Empty description="No attendance sessions recorded yet" /> }}
                         />
                       </div>

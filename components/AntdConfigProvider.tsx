@@ -6,62 +6,125 @@ import { OrbitalSpinner } from '@/components/StylishLoader';
 
 // Set global default indicator for any Spin / Table loading in Ant Design
 if (typeof window !== 'undefined') {
-  Spin.setDefaultIndicator(<OrbitalSpinner size={36} />);
+  Spin.setDefaultIndicator(<OrbitalSpinner size={32} />);
 }
 
 export default function AntdConfigProvider({ children }: { children: React.ReactNode }) {
   useEffect(() => {
-    Spin.setDefaultIndicator(<OrbitalSpinner size={36} />);
+    Spin.setDefaultIndicator(<OrbitalSpinner size={32} />);
   }, []);
 
   return (
     <ConfigProvider
       theme={{
-        algorithm: theme.darkAlgorithm,
+        algorithm: theme.defaultAlgorithm,
         token: {
-          colorPrimary: '#6366f1',
-          colorBgBase: '#0d0d1a',
-          colorBgContainer: 'rgba(255,255,255,0.04)',
-          colorBgElevated: '#1a1a2e',
-          colorBorder: 'rgba(255,255,255,0.1)',
-          colorText: 'rgba(255,255,255,0.87)',
-          colorTextSecondary: 'rgba(255,255,255,0.5)',
-          borderRadius: 10,
+          colorPrimary: '#2563EB',
+          colorBgBase: '#FAFAFA',
+          colorBgContainer: '#FFFFFF',
+          colorBgElevated: '#FFFFFF',
+          colorBorder: '#E4E4E4',
+          colorBorderSecondary: '#E4E4E4',
+          colorText: '#111111',
+          colorTextSecondary: '#6B6B6B',
+          colorError: '#DC2626',
+          colorSuccess: '#16A34A',
+          colorWarning: '#D97706',
+          borderRadius: 0,
+          borderRadiusSM: 0,
+          borderRadiusLG: 0,
+          borderRadiusXS: 0,
+          boxShadow: 'none',
+          boxShadowSecondary: 'none',
+          boxShadowTertiary: 'none',
+          wireframe: true,
           fontFamily: "'Inter', -apple-system, BlinkMacSystemFont, sans-serif",
         },
         components: {
           Spin: {
-            colorPrimary: '#6366f1',
+            colorPrimary: '#2563EB',
+          },
+          Button: {
+            borderRadius: 0,
+            borderRadiusSM: 0,
+            borderRadiusLG: 0,
+            boxShadow: 'none',
+            primaryShadow: 'none',
+          },
+          Input: {
+            borderRadius: 0,
+            borderRadiusSM: 0,
+            borderRadiusLG: 0,
+            colorBgContainer: '#FFFFFF',
+            colorBorder: '#E4E4E4',
+          },
+          Select: {
+            borderRadius: 0,
+            borderRadiusSM: 0,
+            borderRadiusLG: 0,
+            colorBgContainer: '#FFFFFF',
+            colorBorder: '#E4E4E4',
           },
           Menu: {
-            darkItemBg: 'transparent',
-            darkSubMenuItemBg: 'transparent',
-            darkItemSelectedBg: 'rgba(99,102,241,0.15)',
-            darkItemSelectedColor: '#818cf8',
-            darkItemColor: 'rgba(255,255,255,0.6)',
-            darkItemHoverColor: 'rgba(255,255,255,0.87)',
-            itemBorderRadius: 8,
+            itemBg: 'transparent',
+            subMenuItemBg: 'transparent',
+            itemSelectedBg: '#EFF6FF',
+            itemSelectedColor: '#2563EB',
+            itemColor: '#111111',
+            itemHoverColor: '#2563EB',
+            itemHoverBg: '#F4F4F5',
+            itemBorderRadius: 0,
+            subMenuItemBorderRadius: 0,
           },
           Table: {
-            headerBg: 'rgba(255,255,255,0.025)',
-            rowHoverBg: 'rgba(99,102,241,0.08)',
-            cellPaddingBlock: 5,
-            cellPaddingBlockMD: 5,
-            cellPaddingBlockSM: 4,
+            headerBg: '#F4F4F5',
+            headerColor: '#52525B',
+            rowHoverBg: '#F8FAFC',
+            cellPaddingBlock: 7,
+            cellPaddingBlockMD: 6,
+            cellPaddingBlockSM: 5,
             cellPaddingInline: 12,
             cellPaddingInlineMD: 10,
             cellPaddingInlineSM: 8,
             fontSize: 12.5,
+            borderRadius: 0,
           },
           Card: {
-            paddingLG: 24,
+            paddingLG: 20,
+            colorBgContainer: '#FFFFFF',
+            colorBorderSecondary: '#E4E4E4',
+            borderRadiusLG: 0,
           },
           Modal: {
-            contentBg: '#1a1a2e',
-            headerBg: '#1a1a2e',
+            contentBg: '#FFFFFF',
+            headerBg: '#FFFFFF',
+            borderRadiusLG: 0,
+            boxShadow: 'none',
           },
           Drawer: {
-            colorBgElevated: '#1a1a2e',
+            colorBgElevated: '#FFFFFF',
+            borderRadiusLG: 0,
+            boxShadow: 'none',
+          },
+          Tag: {
+            borderRadiusSM: 0,
+          },
+          Badge: {
+            borderRadius: 0,
+          },
+          Pagination: {
+            borderRadius: 0,
+            itemSize: 28,
+            itemSizeSM: 26,
+          },
+          Progress: {
+            lineBorderRadius: 0,
+          },
+          Tooltip: {
+            borderRadius: 0,
+          },
+          Notification: {
+            borderRadiusLG: 0,
           },
         },
       }}

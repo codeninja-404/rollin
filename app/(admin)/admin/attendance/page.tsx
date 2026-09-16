@@ -131,7 +131,7 @@ export default function AttendancePage() {
       <div>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 28, flexWrap: 'wrap', gap: 16 }}>
           <div>
-            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>
+            <Title level={2} style={{ color: '#111111', margin: 0, fontWeight: 700 }}>
               Open Attendance
             </Title>
             <Text type="secondary">
@@ -143,11 +143,11 @@ export default function AttendancePage() {
             icon={<SettingOutlined />}
             onClick={() => setSettingsModalOpen(true)}
             style={{
-              background: 'rgba(255,255,255,0.06)',
-              borderColor: 'rgba(255,255,255,0.12)',
-              color: '#fff',
-              borderRadius: 10,
-              height: 38,
+              background: '#FFFFFF',
+              borderColor: '#E4E4E4',
+              color: '#111111',
+              borderRadius: 0,
+              height: 36,
               fontWeight: 500,
             }}
           >
@@ -159,16 +159,16 @@ export default function AttendancePage() {
         {Object.keys(openSessions).length > 0 && (
           <Card
             style={{
-              background: 'rgba(16,185,129,0.1)',
-              border: '1px solid rgba(16,185,129,0.3)',
-              borderRadius: 14,
+              background: '#F0FDF4',
+              border: '1px solid #BBF7D0',
+              borderRadius: 0,
               marginBottom: 24,
             }}
             styles={{ body: { padding: '14px 20px' } }}
           >
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <Badge status="processing" color="#10b981" />
-              <Text style={{ color: '#34d399', fontWeight: 600 }}>
+              <Badge status="processing" color="#16A34A" />
+              <Text style={{ color: '#16A34A', fontWeight: 600 }}>
                 {Object.keys(openSessions).length} session(s) currently open
               </Text>
             </div>
@@ -188,13 +188,11 @@ export default function AttendancePage() {
                 <Col xs={24} sm={12} lg={8} key={cls.id}>
                   <Card
                     style={{
-                      background: isOpen
-                        ? 'rgba(16,185,129,0.08)'
-                        : 'rgba(255,255,255,0.04)',
+                      background: '#FFFFFF',
                       border: isOpen
-                        ? '1px solid rgba(16,185,129,0.3)'
-                        : '1px solid rgba(255,255,255,0.08)',
-                      borderRadius: 16,
+                        ? '1px solid #16A34A'
+                        : '1px solid #E4E4E4',
+                      borderRadius: 0,
                       height: '100%',
                       transition: 'all 0.2s',
                       position: 'relative',
@@ -216,17 +214,16 @@ export default function AttendancePage() {
                             position: 'absolute',
                             top: 16,
                             right: 16,
-                            background: 'linear-gradient(135deg, #6366f1, #8b5cf6)',
-                            border: 'none',
-                            borderRadius: 8,
+                            background: '#2563EB',
+                            borderColor: '#2563EB',
+                            borderRadius: 0,
                             fontWeight: 600,
                             fontSize: 12,
-                            height: 32,
+                            height: 30,
                             padding: '0 10px',
                             display: 'flex',
                             alignItems: 'center',
                             gap: 6,
-                            boxShadow: '0 4px 12px rgba(99,102,241,0.35)',
                             zIndex: 2,
                           }}
                         >
@@ -237,21 +234,21 @@ export default function AttendancePage() {
 
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: 14, marginBottom: 16, paddingRight: isOpen ? 100 : 0 }}>
                       <div style={{
-                        width: 44,
-                        height: 44,
-                        borderRadius: 12,
-                        background: isOpen ? 'rgba(16,185,129,0.15)' : 'rgba(99,102,241,0.15)',
+                        width: 40,
+                        height: 40,
+                        borderRadius: 0,
+                        background: isOpen ? '#F0FDF4' : '#EFF6FF',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
-                        color: isOpen ? '#34d399' : '#818cf8',
-                        fontSize: 20,
+                        color: isOpen ? '#16A34A' : '#2563EB',
+                        fontSize: 18,
                         flexShrink: 0,
                       }}>
                         <BookOutlined />
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <div style={{ color: '#fff', fontWeight: 700, fontSize: 15, wordBreak: 'break-word' }}>{cls.name}</div>
+                        <div style={{ color: '#111111', fontWeight: 700, fontSize: 15, wordBreak: 'break-word' }}>{cls.name}</div>
                         <Text type="secondary" style={{ fontSize: 12 }}>{cls.course_code}</Text>
                         {[cls.department, cls.semester && `Sem ${cls.semester}`, cls.section && `Sec ${cls.section}`]
                           .filter(Boolean).length > 0 && (
@@ -268,14 +265,14 @@ export default function AttendancePage() {
                     {isOpen ? (
                       <>
                         <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12, flexWrap: 'wrap' }}>
-                          <Badge status="processing" color="#10b981" />
-                          <Text style={{ color: '#34d399', fontWeight: 600 }}>
+                          <Badge status="processing" color="#16A34A" />
+                          <Text style={{ color: '#16A34A', fontWeight: 600 }}>
                             Attendance Open
                           </Text>
                           <Text type="secondary" style={{ fontSize: 12 }}>
                             · {dayjs(session.started_at).format('h:mm A')}
                           </Text>
-                          <Tag color="cyan" style={{ borderRadius: 6, fontSize: 11, marginLeft: 'auto' }}>
+                          <Tag color="cyan" style={{ borderRadius: 0, fontSize: 11, marginLeft: 'auto' }}>
                             {sessionPeriodSeconds}s rotation
                           </Tag>
                         </div>
@@ -285,10 +282,10 @@ export default function AttendancePage() {
                           block
                           onClick={() => router.push(`/admin/attendance/sessions/${session.id}`)}
                           style={{
-                            background: 'linear-gradient(135deg,#10b981,#059669)',
-                            border: 'none',
-                            borderRadius: 10,
-                            height: 40,
+                            background: '#16A34A',
+                            borderColor: '#16A34A',
+                            borderRadius: 0,
+                            height: 38,
                             fontWeight: 600,
                           }}
                         >
@@ -306,10 +303,10 @@ export default function AttendancePage() {
                           setCustomPeriod(null);
                         }}
                         style={{
-                          background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-                          border: 'none',
-                          borderRadius: 10,
-                          height: 40,
+                          background: '#2563EB',
+                          borderColor: '#2563EB',
+                          borderRadius: 0,
+                          height: 38,
                           fontWeight: 600,
                         }}
                       >
@@ -327,8 +324,8 @@ export default function AttendancePage() {
         <Modal
           title={
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <PlayCircleOutlined style={{ color: '#6366f1', fontSize: 20 }} />
-              <span style={{ color: '#fff', fontSize: 17, fontWeight: 700 }}>
+              <PlayCircleOutlined style={{ color: '#2563EB', fontSize: 20 }} />
+              <span style={{ color: '#111111', fontSize: 17, fontWeight: 700 }}>
                 Open Attendance — {selectedClass?.name}
               </span>
             </div>
@@ -339,32 +336,37 @@ export default function AttendancePage() {
           okText="Start Attendance Session"
           confirmLoading={opening !== null}
           width={520}
-          styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
+          styles={{ body: { background: '#FFFFFF' }, header: { background: '#FFFFFF' } }}
           okButtonProps={{
             style: {
-              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-              border: 'none',
-              borderRadius: 8,
-              height: 38,
+              background: '#2563EB',
+              borderColor: '#2563EB',
+              borderRadius: 0,
+              height: 36,
               fontWeight: 600,
+            },
+          }}
+          cancelButtonProps={{
+            style: {
+              borderRadius: 0,
             },
           }}
         >
           <div style={{ marginTop: 16 }}>
             <div style={{ marginBottom: 16 }}>
-              <Text style={{ color: 'rgba(255,255,255,0.7)', fontSize: 14 }}>
-                Course Code: <strong style={{ color: '#818cf8' }}>{selectedClass?.course_code}</strong>
+              <Text style={{ color: '#6B6B6B', fontSize: 14 }}>
+                Course Code: <strong style={{ color: '#2563EB' }}>{selectedClass?.course_code}</strong>
               </Text>
             </div>
 
             <div style={{
-              background: 'rgba(255,255,255,0.04)',
-              border: '1px solid rgba(255,255,255,0.08)',
-              borderRadius: 12,
+              background: '#FAFAFA',
+              border: '1px solid #E4E4E4',
+              borderRadius: 0,
               padding: 18,
               marginBottom: 16,
             }}>
-              <div style={{ color: '#fff', fontWeight: 600, fontSize: 14, marginBottom: 12 }}>
+              <div style={{ color: '#111111', fontWeight: 600, fontSize: 14, marginBottom: 12 }}>
                 ⚡ OTP Rolling Interval (Rotation Speed)
               </div>
               <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 14 }}>
@@ -384,19 +386,19 @@ export default function AttendancePage() {
                 style={{ width: '100%' }}
               >
                 <Space direction="vertical" style={{ width: '100%' }} size={10}>
-                  <Radio value={5} style={{ color: '#fff' }}>
-                    <strong>5 Seconds</strong> <Tag color="red" style={{ marginLeft: 8 }}>Ultra-Fast / Anti-Sharing</Tag>
+                  <Radio value={5} style={{ color: '#111111' }}>
+                    <strong>5 Seconds</strong> <Tag color="red" style={{ marginLeft: 8, borderRadius: 0 }}>Ultra-Fast / Anti-Sharing</Tag>
                   </Radio>
-                  <Radio value={10} style={{ color: '#fff' }}>
-                    <strong>10 Seconds</strong> <Tag color="blue" style={{ marginLeft: 8 }}>Standard Classroom (Recommended)</Tag>
+                  <Radio value={10} style={{ color: '#111111' }}>
+                    <strong>10 Seconds</strong> <Tag color="blue" style={{ marginLeft: 8, borderRadius: 0 }}>Standard Classroom (Recommended)</Tag>
                   </Radio>
-                  <Radio value={15} style={{ color: '#fff' }}>
-                    <strong>15 Seconds</strong> <Tag color="default" style={{ marginLeft: 8 }}>Relaxed</Tag>
+                  <Radio value={15} style={{ color: '#111111' }}>
+                    <strong>15 Seconds</strong> <Tag color="default" style={{ marginLeft: 8, borderRadius: 0 }}>Relaxed</Tag>
                   </Radio>
-                  <Radio value={30} style={{ color: '#fff' }}>
-                    <strong>30 Seconds</strong> <Tag color="default" style={{ marginLeft: 8 }}>Extended</Tag>
+                  <Radio value={30} style={{ color: '#111111' }}>
+                    <strong>30 Seconds</strong> <Tag color="default" style={{ marginLeft: 8, borderRadius: 0 }}>Extended</Tag>
                   </Radio>
-                  <Radio value="custom" style={{ color: '#fff' }}>
+                  <Radio value="custom" style={{ color: '#111111' }}>
                     <strong>Custom seconds:</strong>{' '}
                     {customPeriod !== null && (
                       <InputNumber
@@ -405,7 +407,7 @@ export default function AttendancePage() {
                         size="small"
                         value={customPeriod}
                         onChange={(val) => setCustomPeriod(val || 5)}
-                        style={{ width: 80, marginLeft: 8 }}
+                        style={{ width: 80, marginLeft: 8, borderRadius: 0 }}
                       />
                     )}
                   </Radio>
@@ -414,12 +416,12 @@ export default function AttendancePage() {
             </div>
 
             <div style={{
-              background: 'rgba(99,102,241,0.08)',
-              border: '1px solid rgba(99,102,241,0.2)',
-              borderRadius: 10,
+              background: '#EFF6FF',
+              border: '1px solid #BFDBFE',
+              borderRadius: 0,
               padding: '10px 14px',
             }}>
-              <Text style={{ color: '#a5b4fc', fontSize: 12 }}>
+              <Text style={{ color: '#1E40AF', fontSize: 12 }}>
                 ℹ️ You can also change the rotation speed live anytime while the session is open.
               </Text>
             </div>
@@ -430,8 +432,8 @@ export default function AttendancePage() {
         <Modal
           title={
             <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-              <SettingOutlined style={{ color: '#6366f1', fontSize: 20 }} />
-              <span style={{ color: '#fff', fontSize: 17, fontWeight: 700 }}>
+              <SettingOutlined style={{ color: '#2563EB', fontSize: 20 }} />
+              <span style={{ color: '#111111', fontSize: 17, fontWeight: 700 }}>
                 Default OTP Rolling Interval
               </span>
             </div>
@@ -442,14 +444,19 @@ export default function AttendancePage() {
           okText="Save Default Interval"
           confirmLoading={savingSettings}
           width={450}
-          styles={{ body: { background: '#1a1a2e' }, header: { background: '#1a1a2e' } }}
+          styles={{ body: { background: '#FFFFFF' }, header: { background: '#FFFFFF' } }}
           okButtonProps={{
             style: {
-              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
-              border: 'none',
-              borderRadius: 8,
-              height: 38,
+              background: '#2563EB',
+              borderColor: '#2563EB',
+              borderRadius: 0,
+              height: 36,
               fontWeight: 600,
+            },
+          }}
+          cancelButtonProps={{
+            style: {
+              borderRadius: 0,
             },
           }}
         >
@@ -464,11 +471,11 @@ export default function AttendancePage() {
               style={{ width: '100%', marginBottom: 16 }}
             >
               <Space direction="vertical" style={{ width: '100%' }} size={10}>
-                <Radio value={5} style={{ color: '#fff' }}>5 Seconds (Ultra-Fast)</Radio>
-                <Radio value={10} style={{ color: '#fff' }}>10 Seconds (Standard Classroom)</Radio>
-                <Radio value={15} style={{ color: '#fff' }}>15 Seconds (Relaxed)</Radio>
-                <Radio value={30} style={{ color: '#fff' }}>30 Seconds (Extended)</Radio>
-                <Radio value={60} style={{ color: '#fff' }}>60 Seconds (1 minute)</Radio>
+                <Radio value={5} style={{ color: '#111111' }}>5 Seconds (Ultra-Fast)</Radio>
+                <Radio value={10} style={{ color: '#111111' }}>10 Seconds (Standard Classroom)</Radio>
+                <Radio value={15} style={{ color: '#111111' }}>15 Seconds (Relaxed)</Radio>
+                <Radio value={30} style={{ color: '#111111' }}>30 Seconds (Extended)</Radio>
+                <Radio value={60} style={{ color: '#111111' }}>60 Seconds (1 minute)</Radio>
               </Space>
             </Radio.Group>
           </div>

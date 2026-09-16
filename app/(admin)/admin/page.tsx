@@ -195,6 +195,7 @@ export default function AdminDashboard() {
                 dataSource={recentSessions}
                 columns={columns}
                 rowKey="id"
+                size="small"
                 pagination={false}
                 locale={{ emptyText: 'No sessions yet' }}
                 style={{ background: 'transparent' }}

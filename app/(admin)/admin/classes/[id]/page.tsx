@@ -161,7 +161,8 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
+            borderRadius: 14,
+            overflow: 'hidden',
           }}
           styles={{ header: { borderBottom: '1px solid rgba(255,255,255,0.08)' }, body: { padding: 0 } }}
         >
@@ -169,7 +170,8 @@ export default function ClassDetailPage({ params }: { params: Promise<{ id: stri
             dataSource={sessions}
             columns={sessionColumns}
             rowKey="id"
-            pagination={{ pageSize: 10, showSizeChanger: false }}
+            size="small"
+            pagination={{ pageSize: 10, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
             locale={{ emptyText: 'No sessions yet' }}
           />
         </Card>

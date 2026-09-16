@@ -163,6 +163,7 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                     dataSource={classes}
                     columns={classColumns}
                     rowKey="id"
+                    size="small"
                     pagination={false}
                     locale={{ emptyText: 'Not assigned to any classes' }}
                     style={{ padding: '0 16px 16px' }}
@@ -177,7 +178,8 @@ export default function StudentDetailPage({ params }: { params: Promise<{ id: st
                     dataSource={attendance}
                     columns={attendanceColumns}
                     rowKey="id"
-                    pagination={{ pageSize: 10, showSizeChanger: false }}
+                    size="small"
+                    pagination={{ pageSize: 10, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
                     locale={{ emptyText: 'No attendance records' }}
                     style={{ padding: '0 16px 16px' }}
                   />

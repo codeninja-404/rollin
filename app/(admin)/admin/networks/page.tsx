@@ -188,7 +188,8 @@ export default function NetworksPage() {
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
+            borderRadius: 14,
+            overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
@@ -197,6 +198,7 @@ export default function NetworksPage() {
             columns={columns}
             rowKey="id"
             loading={loading}
+            size="small"
             pagination={false}
             locale={{ emptyText: 'No networks configured. All IPs are currently allowed.' }}
           />

@@ -96,16 +96,21 @@ export default function AssignStudentsPage({ params }: { params: Promise<{ id: s
       title: 'Student',
       key: 'student',
       render: (_: any, s: Student) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Avatar
-            size={32}
-            style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', flexShrink: 0 }}
+            size={26}
+            style={{
+              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+              flexShrink: 0,
+              fontSize: 11,
+              fontWeight: 600,
+            }}
           >
             {s.name.charAt(0)}
           </Avatar>
-          <div>
-            <div style={{ color: '#fff', fontWeight: 600 }}>{s.name}</div>
-            <Text type="secondary" style={{ fontSize: 12 }}>{s.student_code}</Text>
+          <div style={{ lineHeight: 1.15 }}>
+            <div style={{ color: '#fff', fontWeight: 600, fontSize: 12.5, lineHeight: 1.2 }}>{s.name}</div>
+            <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, lineHeight: 1.1 }}>{s.student_code}</span>
           </div>
         </div>
       ),
@@ -113,63 +118,49 @@ export default function AssignStudentsPage({ params }: { params: Promise<{ id: s
     {
       title: 'Email',
       dataIndex: 'email',
-      render: (e: string) => <Text type="secondary">{e}</Text>,
+      render: (e: string) => <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>{e}</span>,
     },
     {
       title: 'Dept',
       dataIndex: 'department',
-      render: (d: string) => <Text type="secondary">{d ?? '—'}</Text>,
+      render: (d: string) => <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{d ?? '—'}</span>,
+    },
+    {
+      title: 'Section',
+      dataIndex: 'section',
+      render: (s: string) => <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{s ? `Sec ${s}` : '—'}</span>,
     },
   ];
 
   return (
     <AntdConfigProvider>
       <div>
-        <Button
-          type="text"
-          icon={<ArrowLeftOutlined />}
-          onClick={() => router.push(`/admin/classes/${classId}`)}
-          style={{ color: 'rgba(255,255,255,0.6)', marginBottom: 20 }}
-        >
-          Back to Class
-        </Button>
-
-        <div style={{ marginBottom: 20 }}>
-          <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>
-            Assign Students
-          </Title>
-          <Text type="secondary">
-            {className} · {assigned.size} students assigned
-          </Text>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
+          <div>
+            <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>Manage Students</Title>
+            <Text type="secondary">{className} — {assigned.size} students enrolled</Text>
+          </div>
+          <Button onClick={() => router.push(`/admin/classes/${classId}`)} style={{ borderRadius: 8, height: 36 }}>
+            Back to Class
+          </Button>
         </div>
 
-        <Alert
-          type="info"
-          message="Check the box next to a student to assign them to this class. Changes are saved instantly."
-          style={{ borderRadius: 10, marginBottom: 20 }}
-        />
-
-        <Input
-          prefix={<SearchOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
-          placeholder="Search students…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          style={{
-            marginBottom: 16,
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 10,
-            color: '#fff',
-            maxWidth: 400,
-            height: 42,
-          }}
-        />
+        <div style={{ marginBottom: 16 }}>
+          <Input
+            prefix={<SearchOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+            placeholder="Search students to assign..."
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            style={{ maxWidth: 360, height: 36, borderRadius: 8 }}
+          />
+        </div>
 
         <Card
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
+            borderRadius: 14,
+            overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
@@ -178,8 +169,8 @@ export default function AssignStudentsPage({ params }: { params: Promise<{ id: s
             columns={columns}
             rowKey="id"
             loading={loading}
-            size="middle"
-            pagination={{ pageSize: 20, showSizeChanger: false }}
+            size="small"
+            pagination={{ pageSize: 20, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
             rowClassName={(s) => assigned.has(s.id) ? 'row-assigned' : ''}
           />
         </Card>

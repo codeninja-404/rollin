@@ -106,7 +106,8 @@ export default function AuditPage() {
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
+            borderRadius: 14,
+            overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
@@ -115,8 +116,8 @@ export default function AuditPage() {
             columns={columns}
             rowKey="id"
             loading={loading}
-            size="middle"
-            pagination={{ pageSize: 20, showSizeChanger: false }}
+            size="small"
+            pagination={{ pageSize: 20, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
             locale={{ emptyText: 'No audit logs yet' }}
           />
         </Card>

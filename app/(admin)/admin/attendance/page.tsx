@@ -252,13 +252,13 @@ export default function AttendancePage() {
                         <Text type="secondary" style={{ fontSize: 12 }}>{cls.course_code}</Text>
                         {[cls.department, cls.semester && `Sem ${cls.semester}`, cls.section && `Sec ${cls.section}`]
                           .filter(Boolean).length > 0 && (
-                          <div>
-                            <Text type="secondary" style={{ fontSize: 12 }}>
-                              {[cls.department, cls.semester && `Sem ${cls.semester}`, cls.section && `Sec ${cls.section}`]
-                                .filter(Boolean).join(' · ')}
-                            </Text>
-                          </div>
-                        )}
+                            <div>
+                              <Text type="secondary" style={{ fontSize: 12 }}>
+                                {[cls.department, cls.semester && `Sem ${cls.semester}`, cls.section && `Sec ${cls.section}`]
+                                  .filter(Boolean).join(' · ')}
+                              </Text>
+                            </div>
+                          )}
                       </div>
                     </div>
 
@@ -367,7 +367,7 @@ export default function AttendancePage() {
               marginBottom: 16,
             }}>
               <div style={{ color: '#111111', fontWeight: 600, fontSize: 14, marginBottom: 12 }}>
-                ⚡ OTP Rolling Interval (Rotation Speed)
+                OTP Rolling Interval (Rotation Speed)
               </div>
               <Text type="secondary" style={{ fontSize: 12, display: 'block', marginBottom: 14 }}>
                 The one-time code will dynamically change every interval. Shorter intervals offer maximum anti-proxy security.
@@ -422,7 +422,7 @@ export default function AttendancePage() {
               padding: '10px 14px',
             }}>
               <Text style={{ color: '#1E40AF', fontSize: 12 }}>
-                ℹ️ You can also change the rotation speed live anytime while the session is open.
+                You can also change the rotation speed live anytime while the session is open.
               </Text>
             </div>
           </div>

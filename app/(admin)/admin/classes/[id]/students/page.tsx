@@ -178,6 +178,7 @@ export default function AssignStudentsPage({ params }: { params: Promise<{ id: s
             columns={columns}
             rowKey="id"
             loading={loading}
+            size="middle"
             pagination={{ pageSize: 20, showSizeChanger: false }}
             rowClassName={(s) => assigned.has(s.id) ? 'row-assigned' : ''}
           />

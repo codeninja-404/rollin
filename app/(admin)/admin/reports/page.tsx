@@ -358,11 +358,11 @@ export default function ReportsPage() {
       title: 'Student',
       key: 'student',
       render: (_, r) => (
-        <div>
-          <div style={{ color: '#fff', fontWeight: 600, fontSize: 14 }}>{r.student_name}</div>
-          <div style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <span style={{ color: '#818cf8', fontFamily: 'monospace', fontSize: 12 }}>{r.student_code}</span>
-            <Text type="secondary" style={{ fontSize: 12 }}>· {r.email}</Text>
+        <div style={{ lineHeight: 1.15 }}>
+          <div style={{ color: '#fff', fontWeight: 600, fontSize: 12.5, lineHeight: 1.2 }}>{r.student_name}</div>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 1 }}>
+            <span style={{ color: '#818cf8', fontFamily: 'monospace', fontSize: 11 }}>{r.student_code}</span>
+            <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 11 }}>· {r.email}</span>
           </div>
         </div>
       ),
@@ -371,13 +371,13 @@ export default function ReportsPage() {
       title: 'Class / Course',
       key: 'class',
       render: (_, r) => (
-        <div>
-          <div style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>{r.class_name}</div>
-          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 2 }}>
-            <Tag color="geekblue" style={{ borderRadius: 4, fontSize: 11, margin: 0 }}>
+        <div style={{ lineHeight: 1.15 }}>
+          <span style={{ color: 'rgba(255,255,255,0.9)', fontWeight: 500, fontSize: 12.5 }}>{r.class_name}</span>
+          <div style={{ display: 'flex', gap: 6, alignItems: 'center', marginTop: 1 }}>
+            <Tag color="geekblue" style={{ borderRadius: 4, fontSize: 10, margin: 0, padding: '0 4px', height: 18, lineHeight: '16px' }}>
               {r.course_code}
             </Tag>
-            <Text type="secondary" style={{ fontSize: 11 }}>{r.department}</Text>
+            <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11 }}>{r.department}</span>
           </div>
         </div>
       ),
@@ -387,15 +387,15 @@ export default function ReportsPage() {
       key: 'counts',
       align: 'center',
       render: (_, r) => (
-        <div style={{ textAlign: 'center' }}>
-          <span style={{ color: '#fff', fontWeight: 700, fontSize: 15 }}>
+        <div style={{ textAlign: 'center', lineHeight: 1.15 }}>
+          <span style={{ color: '#fff', fontWeight: 700, fontSize: 13 }}>
             {r.present}
           </span>
-          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 13 }}>
+          <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>
             {' '}/ {r.sessions}
           </span>
           {r.missed > 0 && (
-            <div style={{ color: '#f87171', fontSize: 11, marginTop: 2 }}>
+            <div style={{ color: '#f87171', fontSize: 10.5 }}>
               {r.missed} missed
             </div>
           )}
@@ -410,16 +410,16 @@ export default function ReportsPage() {
       render: (v: number, r) => {
         const color = v >= 75 ? '#10b981' : v >= 50 ? '#f59e0b' : '#ef4444';
         return (
-          <div style={{ display: 'flex', alignItems: 'center', gap: 12, minWidth: 160 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 130 }}>
             <Progress
               percent={v}
               size="small"
               strokeColor={color}
               railColor="rgba(255,255,255,0.08)"
               showInfo={false}
-              style={{ flex: 1 }}
+              style={{ flex: 1, marginBottom: 0 }}
             />
-            <span style={{ color, fontWeight: 700, fontSize: 14, minWidth: 42, textAlign: 'right' }}>
+            <span style={{ color, fontWeight: 700, fontSize: 12.5, minWidth: 36, textAlign: 'right' }}>
               {v}%
             </span>
           </div>
@@ -430,17 +430,18 @@ export default function ReportsPage() {
       title: 'Status',
       key: 'status',
       align: 'center',
+      width: 90,
       render: (_, r) => {
         if (r.sessions === 0) {
-          return <Tag style={{ borderRadius: 6 }}>No Sessions</Tag>;
+          return <Tag style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px' }}>No Sessions</Tag>;
         }
         if (r.status_tier === 'good') {
-          return <Tag color="success" style={{ borderRadius: 6, fontWeight: 600 }}>Good</Tag>;
+          return <Tag color="success" style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}>Good</Tag>;
         }
         if (r.status_tier === 'warning') {
-          return <Tag color="warning" style={{ borderRadius: 6, fontWeight: 600 }}>Warning</Tag>;
+          return <Tag color="warning" style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}>Warning</Tag>;
         }
-        return <Tag color="error" style={{ borderRadius: 6, fontWeight: 600 }}>Critical (&lt;50%)</Tag>;
+        return <Tag color="error" style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px', fontWeight: 600 }}>Critical (&lt;50%)</Tag>;
       },
     },
   ];
@@ -924,9 +925,10 @@ export default function ReportsPage() {
                         dataSource={filteredStudents}
                         columns={studentColumns}
                         rowKey={(r) => `${r.student_id}-${r.class_id}`}
-                        pagination={{ pageSize: 15, showSizeChanger: true, pageSizeOptions: ['15', '30', '50'] }}
+                        size="small"
+                        pagination={{ pageSize: 15, showSizeChanger: true, pageSizeOptions: ['15', '30', '50'], style: { padding: '8px 16px', margin: 0 } }}
                         locale={{ emptyText: <Empty description="No student records match the selected filters" /> }}
-                        style={{ padding: '0 0 16px' }}
+                        style={{ padding: '0 0 8px' }}
                       />
                     ),
                   },
@@ -938,9 +940,10 @@ export default function ReportsPage() {
                         dataSource={filteredClasses}
                         columns={classColumns}
                         rowKey="class_id"
-                        pagination={{ pageSize: 15, showSizeChanger: false }}
+                        size="small"
+                        pagination={{ pageSize: 15, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
                         locale={{ emptyText: <Empty description="No class data available" /> }}
-                        style={{ padding: '0 0 16px' }}
+                        style={{ padding: '0 0 8px' }}
                       />
                     ),
                   },
@@ -948,18 +951,18 @@ export default function ReportsPage() {
                     key: 'sessions',
                     label: `Session History Logs (${filteredSessions.length})`,
                     children: (
-                      <div style={{ padding: '0 0 16px' }}>
+                      <div style={{ padding: '0 0 8px' }}>
                         <div style={{
                           display: 'flex',
                           justifyContent: 'space-between',
                           alignItems: 'center',
-                          padding: '12px 16px',
+                          padding: '10px 16px',
                           borderBottom: '1px solid rgba(255,255,255,0.06)',
-                          marginBottom: 12,
+                          marginBottom: 10,
                           flexWrap: 'wrap',
                           gap: 10,
                         }}>
-                          <Text type="secondary" style={{ fontSize: 13 }}>
+                          <Text type="secondary" style={{ fontSize: 12 }}>
                             {filteredSessions.length} session records found — click <strong style={{ color: '#a5b4fc' }}>Export XLSX</strong> on any row to download full student attendee rosters
                           </Text>
                           <Button
@@ -971,7 +974,8 @@ export default function ReportsPage() {
                               borderColor: 'rgba(99,102,241,0.3)',
                               color: '#fff',
                               borderRadius: 8,
-                              height: 32,
+                              height: 28,
+                              fontSize: 12,
                               fontWeight: 500,
                             }}
                           >
@@ -982,7 +986,8 @@ export default function ReportsPage() {
                           dataSource={filteredSessions}
                           columns={sessionColumns}
                           rowKey="session_id"
-                          pagination={{ pageSize: 15, showSizeChanger: false }}
+                          size="small"
+                          pagination={{ pageSize: 15, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
                           locale={{ emptyText: <Empty description="No attendance sessions recorded yet" /> }}
                         />
                       </div>

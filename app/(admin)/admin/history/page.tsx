@@ -174,31 +174,33 @@ export default function HistoryPage() {
       title: 'Class',
       key: 'class',
       render: (_: any, s: AttendanceSession) => (
-        <div>
-          <div style={{ color: '#fff', fontWeight: 600 }}>{(s.class as any)?.name}</div>
-          <Text type="secondary" style={{ fontSize: 12 }}>{(s.class as any)?.course_code}</Text>
+        <div style={{ lineHeight: 1.15 }}>
+          <div style={{ color: '#fff', fontWeight: 600, fontSize: 12.5, lineHeight: 1.2 }}>{(s.class as any)?.name}</div>
+          <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, lineHeight: 1.1 }}>{(s.class as any)?.course_code}</span>
         </div>
       ),
     },
     {
       title: 'Date',
       dataIndex: 'started_at',
-      render: (v: string) => dayjs(v).format('MMM D, YYYY h:mm A'),
+      render: (v: string) => <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>{dayjs(v).format('MMM D, YYYY h:mm A')}</span>,
     },
     {
       title: 'Duration',
       key: 'duration',
       render: (_: any, s: AttendanceSession) => {
-        if (!s.ended_at) return <Text type="secondary">—</Text>;
+        if (!s.ended_at) return <span style={{ color: 'rgba(255,255,255,0.4)', fontSize: 12 }}>—</span>;
         const mins = dayjs(s.ended_at).diff(dayjs(s.started_at), 'minute');
-        return <Text type="secondary">{mins} min</Text>;
+        return <span style={{ color: 'rgba(255,255,255,0.6)', fontSize: 12 }}>{mins} min</span>;
       },
     },
     {
       title: 'Status',
       dataIndex: 'status',
+      align: 'center' as const,
+      width: 85,
       render: (status: string) => (
-        <Tag color={status === 'open' ? 'green' : 'default'} style={{ borderRadius: 6 }}>
+        <Tag color={status === 'open' ? 'green' : 'default'} style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px' }}>
           {status.toUpperCase()}
         </Tag>
       ),
@@ -206,13 +208,15 @@ export default function HistoryPage() {
     {
       title: 'Actions',
       key: 'actions',
+      align: 'center' as const,
+      width: 140,
       render: (_: any, s: AttendanceSession) => (
         <Space size={6}>
           <Button
             type="text"
             icon={<EyeOutlined />}
             size="small"
-            style={{ color: '#818cf8' }}
+            style={{ color: '#818cf8', height: 24, fontSize: 11.5, padding: '0 6px' }}
             onClick={() => viewSession(s)}
           >
             View
@@ -222,7 +226,7 @@ export default function HistoryPage() {
             icon={<FileExcelOutlined />}
             size="small"
             loading={exportingId === s.id}
-            style={{ color: '#34d399' }}
+            style={{ color: '#34d399', height: 24, fontSize: 11.5, padding: '0 6px' }}
             onClick={() => exportSessionXLSX(s)}
           >
             XLSX
@@ -235,7 +239,7 @@ export default function HistoryPage() {
   return (
     <AntdConfigProvider>
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
           <div>
             <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>
               Attendance History
@@ -262,7 +266,8 @@ export default function HistoryPage() {
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
+            borderRadius: 14,
+            overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
@@ -271,7 +276,8 @@ export default function HistoryPage() {
             columns={columns}
             rowKey="id"
             loading={loading}
-            pagination={{ pageSize: 15, showSizeChanger: false }}
+            size="small"
+            pagination={{ pageSize: 15, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
             locale={{ emptyText: 'No closed sessions yet' }}
           />
         </Card>

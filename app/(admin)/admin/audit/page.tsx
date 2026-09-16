@@ -115,6 +115,7 @@ export default function AuditPage() {
             columns={columns}
             rowKey="id"
             loading={loading}
+            size="middle"
             pagination={{ pageSize: 20, showSizeChanger: false }}
             locale={{ emptyText: 'No audit logs yet' }}
           />

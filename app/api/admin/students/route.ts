@@ -78,7 +78,7 @@ export async function GET(request: NextRequest) {
   const semSet = new Set<number>();
   const secSet = new Set<string>();
 
-  (metaList || []).forEach((row) => {
+  (metaList as Array<{ department: string | null; semester: number | null; section: string | null }> || []).forEach((row) => {
     if (row.department) deptSet.add(row.department);
     if (row.semester !== null && row.semester !== undefined) semSet.add(row.semester);
     if (row.section) secSet.add(row.section);

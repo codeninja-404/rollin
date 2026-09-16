@@ -68,23 +68,24 @@ export default function ClassesPage() {
       title: 'Class',
       key: 'class',
       render: (_, c) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <div style={{
-            width: 40,
-            height: 40,
-            borderRadius: 10,
+            width: 26,
+            height: 26,
+            borderRadius: 6,
             background: 'rgba(99,102,241,0.15)',
             display: 'flex',
             alignItems: 'center',
             justifyContent: 'center',
             color: '#818cf8',
-            fontSize: 18,
+            fontSize: 13,
+            flexShrink: 0,
           }}>
             <BookOutlined />
           </div>
-          <div>
-            <div style={{ color: '#fff', fontWeight: 600 }}>{c.name}</div>
-            <Text type="secondary" style={{ fontSize: 12 }}>{c.course_code}</Text>
+          <div style={{ lineHeight: 1.15 }}>
+            <div style={{ color: '#fff', fontWeight: 600, fontSize: 12.5, lineHeight: 1.2 }}>{c.name}</div>
+            <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, lineHeight: 1.1 }}>{c.course_code}</span>
           </div>
         </div>
       ),
@@ -92,22 +93,24 @@ export default function ClassesPage() {
     {
       title: 'Department',
       dataIndex: 'department',
-      render: (v: string) => <Text type="secondary">{v ?? '—'}</Text>,
+      render: (v: string) => <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>{v ?? '—'}</span>,
     },
     {
       title: 'Semester / Section',
       key: 'sem',
       render: (_, c) => (
-        <Text type="secondary">
+        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
           {[c.semester && `Sem ${c.semester}`, c.section && `Sec ${c.section}`].filter(Boolean).join(' · ') || '—'}
-        </Text>
+        </span>
       ),
     },
     {
       title: 'Status',
       dataIndex: 'status',
+      align: 'center',
+      width: 85,
       render: (s: string) => (
-        <Tag color={s === 'active' ? 'green' : 'default'} style={{ borderRadius: 6 }}>
+        <Tag color={s === 'active' ? 'green' : 'default'} style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px' }}>
           {s.toUpperCase()}
         </Tag>
       ),
@@ -115,14 +118,17 @@ export default function ClassesPage() {
     {
       title: 'Created',
       dataIndex: 'created_at',
+      align: 'center',
+      width: 105,
       render: (v: string) => (
-        <Text type="secondary" style={{ fontSize: 12 }}>{dayjs(v).format('MMM D, YYYY')}</Text>
+        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11.5 }}>{dayjs(v).format('MMM D, YYYY')}</span>
       ),
     },
     {
       title: '',
       key: 'actions',
-      width: 60,
+      width: 44,
+      align: 'center',
       render: (_, c) => (
         <Dropdown
           menu={{
@@ -133,7 +139,7 @@ export default function ClassesPage() {
           }}
           trigger={['click']}
         >
-          <Button type="text" icon={<MoreOutlined />} style={{ color: 'rgba(255,255,255,0.5)' }} />
+          <Button type="text" size="small" icon={<MoreOutlined />} style={{ color: 'rgba(255,255,255,0.5)', width: 24, height: 24, padding: 0 }} />
         </Dropdown>
       ),
     },
@@ -142,7 +148,7 @@ export default function ClassesPage() {
   return (
     <AntdConfigProvider>
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
           <div>
             <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>Classes</Title>
             <Text type="secondary">{classes.length} classes total</Text>
@@ -155,7 +161,7 @@ export default function ClassesPage() {
               background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
               border: 'none',
               borderRadius: 10,
-              height: 40,
+              height: 38,
               fontWeight: 600,
             }}
           >
@@ -167,7 +173,8 @@ export default function ClassesPage() {
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
+            borderRadius: 14,
+            overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
@@ -176,7 +183,8 @@ export default function ClassesPage() {
             columns={columns}
             rowKey="id"
             loading={loading}
-            pagination={{ pageSize: 15, showSizeChanger: false }}
+            size="small"
+            pagination={{ pageSize: 15, showSizeChanger: false, style: { padding: '8px 16px', margin: 0 } }}
             onRow={(c) => ({ onClick: () => router.push(`/admin/classes/${c.id}`), style: { cursor: 'pointer' } })}
             locale={{ emptyText: 'No classes yet. Create one to get started.' }}
           />

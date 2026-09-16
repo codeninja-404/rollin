@@ -43,8 +43,15 @@ export default function AntdConfigProvider({ children }: { children: React.React
             itemBorderRadius: 8,
           },
           Table: {
-            headerBg: 'rgba(255,255,255,0.04)',
+            headerBg: 'rgba(255,255,255,0.025)',
             rowHoverBg: 'rgba(99,102,241,0.08)',
+            cellPaddingBlock: 5,
+            cellPaddingBlockMD: 5,
+            cellPaddingBlockSM: 4,
+            cellPaddingInline: 12,
+            cellPaddingInlineMD: 10,
+            cellPaddingInlineSM: 8,
+            fontSize: 12.5,
           },
           Card: {
             paddingLG: 24,

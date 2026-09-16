@@ -4,7 +4,7 @@ import React, { useEffect, useState, useCallback } from 'react';
 import {
   Card, Table, Button, Input, Tag, Space, Typography, Modal,
   Upload, Alert, Progress, message, Tooltip, Avatar, Badge,
-  Dropdown, Switch, Form, Select, InputNumber, Row, Col,
+  Dropdown, Switch, Form, Select, InputNumber, Row, Col, Pagination,
 } from 'antd';
 import {
   TeamOutlined, SearchOutlined, UploadOutlined, UserAddOutlined,
@@ -29,12 +29,30 @@ interface CsvPreviewRow extends CsvStudentRow {
 
 export default function StudentsPage() {
   const [students, setStudents] = useState<Student[]>([]);
+  const [total, setTotal] = useState(0);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState(10);
   const [loading, setLoading] = useState(true);
+
+  // Filter states
   const [search, setSearch] = useState('');
+  const [appliedSearch, setAppliedSearch] = useState('');
+  const [department, setDepartment] = useState('all');
+  const [semester, setSemester] = useState('all');
+  const [section, setSection] = useState('all');
+  const [status, setStatus] = useState('all');
+
+  // Dynamic filter lists from API
+  const [availableDepartments, setAvailableDepartments] = useState<string[]>([]);
+  const [availableSemesters, setAvailableSemesters] = useState<number[]>([]);
+  const [availableSections, setAvailableSections] = useState<string[]>([]);
+
+  // Modals state
   const [importOpen, setImportOpen] = useState(false);
   const [csvPreview, setCsvPreview] = useState<CsvPreviewRow[]>([]);
   const [importing, setImporting] = useState(false);
   const [importDone, setImportDone] = useState(false);
+  const [exportingAll, setExportingAll] = useState(false);
 
   // Manual Add Student modal state
   const [addOpen, setAddOpen] = useState(false);
@@ -43,28 +61,82 @@ export default function StudentsPage() {
 
   const router = useRouter();
 
-  const load = useCallback(async () => {
+  const fetchStudents = useCallback(async (overrides?: {
+    page?: number;
+    pageSize?: number;
+    search?: string;
+    department?: string;
+    semester?: string;
+    section?: string;
+    status?: string;
+  }) => {
     setLoading(true);
+    const targetPage = overrides?.page ?? page;
+    const targetLimit = overrides?.pageSize ?? pageSize;
+    const targetSearch = overrides?.search !== undefined ? overrides.search : appliedSearch;
+    const targetDept = overrides?.department ?? department;
+    const targetSem = overrides?.semester ?? semester;
+    const targetSec = overrides?.section ?? section;
+    const targetStatus = overrides?.status ?? status;
+
     try {
-      const res = await fetch('/api/admin/students');
+      const params = new URLSearchParams({
+        page: String(targetPage),
+        limit: String(targetLimit),
+      });
+      if (targetSearch.trim()) params.set('search', targetSearch.trim());
+      if (targetDept !== 'all') params.set('department', targetDept);
+      if (targetSem !== 'all') params.set('semester', targetSem);
+      if (targetSec !== 'all') params.set('section', targetSec);
+      if (targetStatus !== 'all') params.set('status', targetStatus);
+
+      const res = await fetch(`/api/admin/students?${params.toString()}`);
       const data = await res.json();
       setStudents(data.students ?? []);
+      setTotal(data.total ?? 0);
+      if (data.departments) setAvailableDepartments(data.departments);
+      if (data.semesters) setAvailableSemesters(data.semesters);
+      if (data.sections) setAvailableSections(data.sections);
+    } catch {
+      message.error('Failed to load students');
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [page, pageSize, appliedSearch, department, semester, section, status]);
 
-  useEffect(() => { load(); }, [load]);
+  useEffect(() => {
+    fetchStudents();
+  }, [fetchStudents]);
 
-  const filtered = students.filter((s) =>
-    s.name.toLowerCase().includes(search.toLowerCase()) ||
-    s.student_code.toLowerCase().includes(search.toLowerCase()) ||
-    s.email.toLowerCase().includes(search.toLowerCase()),
-  );
+  const handleApplyFilters = () => {
+    if (appliedSearch === search && page === 1) {
+      fetchStudents({ search, page: 1 });
+    } else {
+      setAppliedSearch(search);
+      setPage(1);
+    }
+  };
 
-  const processRows = (rows: CsvStudentRow[]) => {
-    const existingEmails = new Set(students.map((s) => s.email.toLowerCase()));
-    const existingCodes = new Set(students.map((s) => s.student_code.toLowerCase()));
+  const handleResetFilters = () => {
+    setSearch('');
+    setAppliedSearch('');
+    setDepartment('all');
+    setSemester('all');
+    setSection('all');
+    setStatus('all');
+    setPage(1);
+  };
+
+  const handlePageChange = (newPage: number, newPageSize: number) => {
+    if (newPageSize !== pageSize) {
+      setPageSize(newPageSize);
+      setPage(1);
+    } else {
+      setPage(newPage);
+    }
+  };
+
+  const processRows = (rows: CsvStudentRow[], existingEmails: Set<string>, existingCodes: Set<string>) => {
     const seen = new Set<string>();
 
     const preview: CsvPreviewRow[] = rows.map((row) => {
@@ -90,7 +162,20 @@ export default function StudentsPage() {
     setImportOpen(true);
   };
 
-  const handleFile = (file: File) => {
+  const handleFile = async (file: File) => {
+    let existingEmails = new Set<string>();
+    let existingCodes = new Set<string>();
+
+    try {
+      const res = await fetch('/api/admin/students?all=true');
+      const data = await res.json();
+      const all: Student[] = data.students ?? [];
+      existingEmails = new Set(all.map((s) => s.email.toLowerCase()));
+      existingCodes = new Set(all.map((s) => s.student_code.toLowerCase()));
+    } catch {
+      // ignore
+    }
+
     const isExcel = file.name.endsWith('.xlsx') || file.name.endsWith('.xls');
     if (isExcel) {
       const reader = new FileReader();
@@ -101,7 +186,7 @@ export default function StudentsPage() {
           const firstSheetName = workbook.SheetNames[0];
           const worksheet = workbook.Sheets[firstSheetName];
           const rows = XLSX.utils.sheet_to_json<CsvStudentRow>(worksheet);
-          processRows(rows);
+          processRows(rows, existingEmails, existingCodes);
         } catch (err) {
           message.error('Failed to parse Excel file. Please ensure it is a valid .xlsx or .xls file.');
         }
@@ -112,7 +197,7 @@ export default function StudentsPage() {
         header: true,
         skipEmptyLines: true,
         complete: (results) => {
-          processRows(results.data);
+          processRows(results.data, existingEmails, existingCodes);
         },
       });
     }
@@ -134,7 +219,7 @@ export default function StudentsPage() {
       if (res.ok) {
         message.success(`Imported ${data.imported} students`);
         setImportDone(true);
-        load();
+        fetchStudents({ page: 1 });
       } else {
         message.error(data.error ?? 'Import failed');
       }
@@ -180,6 +265,48 @@ export default function StudentsPage() {
     message.success('Dummy students XLSX downloaded!');
   };
 
+  const exportFilteredStudentsXLSX = async () => {
+    setExportingAll(true);
+    try {
+      const params = new URLSearchParams({ all: 'true' });
+      if (appliedSearch.trim()) params.set('search', appliedSearch.trim());
+      if (department !== 'all') params.set('department', department);
+      if (semester !== 'all') params.set('semester', semester);
+      if (section !== 'all') params.set('section', section);
+      if (status !== 'all') params.set('status', status);
+
+      const res = await fetch(`/api/admin/students?${params.toString()}`);
+      const data = await res.json();
+      const exportList: Student[] = data.students ?? [];
+
+      if (exportList.length === 0) {
+        message.warning('No students match the current filter criteria to export');
+        return;
+      }
+
+      const rows = exportList.map((s) => ({
+        'Student ID': s.student_code,
+        'Name': s.name,
+        'Email': s.email,
+        'Department': s.department || '—',
+        'Semester': s.semester ?? '—',
+        'Section': s.section || '—',
+        'Status': s.status.toUpperCase(),
+        'Joined Date': dayjs(s.created_at).format('YYYY-MM-DD'),
+      }));
+
+      const ws = XLSX.utils.json_to_sheet(rows);
+      const wb = XLSX.utils.book_new();
+      XLSX.utils.book_append_sheet(wb, ws, 'Students');
+      XLSX.writeFile(wb, `Rollin_Students_${dayjs().format('YYYY-MM-DD')}.xlsx`);
+      message.success(`Exported ${exportList.length} students (.xlsx)!`);
+    } catch (err) {
+      message.error('Failed to export students');
+    } finally {
+      setExportingAll(false);
+    }
+  };
+
   const handleManualAdd = async (values: any) => {
     setAddLoading(true);
     try {
@@ -193,7 +320,7 @@ export default function StudentsPage() {
         message.success(`Student ${data.student.name} added successfully!`);
         addForm.resetFields();
         setAddOpen(false);
-        load();
+        fetchStudents({ page: 1 });
       } else {
         message.error(data.error || 'Failed to add student');
       }
@@ -213,16 +340,21 @@ export default function StudentsPage() {
       title: 'Student',
       key: 'student',
       render: (_, s) => (
-        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
           <Avatar
-            style={{ background: 'linear-gradient(135deg,#6366f1,#8b5cf6)', flexShrink: 0 }}
-            size={36}
+            style={{
+              background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+              flexShrink: 0,
+              fontSize: 11,
+              fontWeight: 600,
+            }}
+            size={26}
           >
             {s.name.charAt(0).toUpperCase()}
           </Avatar>
-          <div>
-            <div style={{ color: '#fff', fontWeight: 600 }}>{s.name}</div>
-            <Text type="secondary" style={{ fontSize: 12 }}>{s.student_code}</Text>
+          <div style={{ lineHeight: 1.15 }}>
+            <div style={{ color: '#fff', fontWeight: 600, fontSize: 12.5, lineHeight: 1.2 }}>{s.name}</div>
+            <span style={{ color: 'rgba(255,255,255,0.45)', fontSize: 11, lineHeight: 1.1 }}>{s.student_code}</span>
           </div>
         </div>
       ),
@@ -231,25 +363,27 @@ export default function StudentsPage() {
       title: 'Email',
       dataIndex: 'email',
       key: 'email',
-      render: (email: string) => <Text style={{ color: 'rgba(255,255,255,0.7)' }}>{email}</Text>,
+      render: (email: string) => <span style={{ color: 'rgba(255,255,255,0.7)', fontSize: 12 }}>{email}</span>,
     },
     {
       title: 'Department / Class Info',
       key: 'dept',
       render: (_, s) => (
-        <Text type="secondary">
+        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 12 }}>
           {[s.department, s.semester && `Sem ${s.semester}`, s.section && `Sec ${s.section}`]
-            .filter(Boolean).join(' · ')}
-        </Text>
+            .filter(Boolean).join(' · ') || '—'}
+        </span>
       ),
     },
     {
       title: 'Status',
       dataIndex: 'status',
       key: 'status',
-      render: (status: string) => (
-        <Tag color={status === 'active' ? 'green' : 'default'} style={{ borderRadius: 6 }}>
-          {status.toUpperCase()}
+      align: 'center',
+      width: 85,
+      render: (st: string) => (
+        <Tag color={st === 'active' ? 'green' : 'default'} style={{ borderRadius: 4, fontSize: 10.5, margin: 0, padding: '0 6px', height: 20, lineHeight: '18px' }}>
+          {st.toUpperCase()}
         </Tag>
       ),
     },
@@ -257,16 +391,19 @@ export default function StudentsPage() {
       title: 'Joined',
       dataIndex: 'created_at',
       key: 'created_at',
+      align: 'center',
+      width: 105,
       render: (val: string) => (
-        <Text type="secondary" style={{ fontSize: 12 }}>
+        <span style={{ color: 'rgba(255,255,255,0.5)', fontSize: 11.5 }}>
           {dayjs(val).format('MMM D, YYYY')}
-        </Text>
+        </span>
       ),
     },
     {
       title: '',
       key: 'actions',
-      width: 60,
+      width: 44,
+      align: 'center',
       render: (_, s) => (
         <Dropdown
           menu={{
@@ -276,7 +413,7 @@ export default function StudentsPage() {
           }}
           trigger={['click']}
         >
-          <Button type="text" icon={<MoreOutlined />} style={{ color: 'rgba(255,255,255,0.5)' }} />
+          <Button type="text" size="small" icon={<MoreOutlined />} style={{ color: 'rgba(255,255,255,0.5)', width: 24, height: 24, padding: 0 }} />
         </Dropdown>
       ),
     },
@@ -303,13 +440,14 @@ export default function StudentsPage() {
   return (
     <AntdConfigProvider>
       <div>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 24, flexWrap: 'wrap', gap: 16 }}>
+        {/* Header with Title & Action Buttons */}
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20, flexWrap: 'wrap', gap: 16 }}>
           <div>
             <Title level={2} style={{ color: '#fff', margin: 0, fontWeight: 700 }}>Students</Title>
-            <Text type="secondary">{students.length} students total</Text>
+            <Text type="secondary">{total} registered students total</Text>
           </div>
 
-          <Space size={12}>
+          <Space size={10} wrap>
             {/* Download Sample XLSX */}
             <Button
               icon={<FileExcelOutlined />}
@@ -319,11 +457,28 @@ export default function StudentsPage() {
                 borderColor: 'rgba(255,255,255,0.12)',
                 color: '#fff',
                 borderRadius: 10,
-                height: 40,
+                height: 38,
                 fontWeight: 500,
               }}
             >
               Sample XLSX
+            </Button>
+
+            {/* Export Filtered Students */}
+            <Button
+              icon={<DownloadOutlined />}
+              onClick={exportFilteredStudentsXLSX}
+              loading={exportingAll}
+              style={{
+                background: 'rgba(255,255,255,0.06)',
+                borderColor: 'rgba(255,255,255,0.12)',
+                color: '#fff',
+                borderRadius: 10,
+                height: 38,
+                fontWeight: 500,
+              }}
+            >
+              Export (XLSX)
             </Button>
 
             {/* Manual Add Student */}
@@ -335,7 +490,7 @@ export default function StudentsPage() {
                 borderColor: 'rgba(255,255,255,0.15)',
                 color: '#fff',
                 borderRadius: 10,
-                height: 40,
+                height: 38,
                 fontWeight: 600,
               }}
             >
@@ -351,7 +506,7 @@ export default function StudentsPage() {
                   background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
                   border: 'none',
                   borderRadius: 10,
-                  height: 40,
+                  height: 38,
                   fontWeight: 600,
                   boxShadow: '0 4px 14px rgba(99,102,241,0.3)',
                 }}
@@ -362,39 +517,181 @@ export default function StudentsPage() {
           </Space>
         </div>
 
-        {/* Search */}
-        <Input
-          prefix={<SearchOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
-          placeholder="Search by name, code, or email…"
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
+        {/* API-Managed Interactive Filters Bar */}
+        <Card
           style={{
-            marginBottom: 20,
-            background: 'rgba(255,255,255,0.05)',
-            border: '1px solid rgba(255,255,255,0.1)',
-            borderRadius: 10,
-            color: '#fff',
-            maxWidth: 400,
-            height: 42,
+            background: 'rgba(255,255,255,0.03)',
+            border: '1px solid rgba(255,255,255,0.07)',
+            borderRadius: 14,
+            marginBottom: 16,
           }}
-        />
+          styles={{ body: { padding: '14px 16px' } }}
+        >
+          <Row gutter={[12, 10]} align="middle">
+            <Col xs={24} sm={12} md={7}>
+              <Input
+                prefix={<SearchOutlined style={{ color: 'rgba(255,255,255,0.3)' }} />}
+                placeholder="Search name, code, or email…"
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                onPressEnter={handleApplyFilters}
+                allowClear
+                style={{
+                  height: 36,
+                  background: 'rgba(255,255,255,0.05)',
+                  borderColor: 'rgba(255,255,255,0.1)',
+                  borderRadius: 8,
+                  color: '#fff',
+                }}
+              />
+            </Col>
 
+            <Col xs={12} sm={6} md={4}>
+              <Select
+                value={department}
+                onChange={(v) => {
+                  setDepartment(v);
+                  setPage(1);
+                }}
+                style={{ width: '100%' }}
+                placeholder="Department"
+              >
+                <Select.Option value="all">All Depts</Select.Option>
+                {availableDepartments.map((d) => (
+                  <Select.Option key={d} value={d}>{d}</Select.Option>
+                ))}
+              </Select>
+            </Col>
+
+            <Col xs={12} sm={6} md={3}>
+              <Select
+                value={semester}
+                onChange={(v) => {
+                  setSemester(v);
+                  setPage(1);
+                }}
+                style={{ width: '100%' }}
+                placeholder="Semester"
+              >
+                <Select.Option value="all">All Semesters</Select.Option>
+                {availableSemesters.map((s) => (
+                  <Select.Option key={s} value={String(s)}>Sem {s}</Select.Option>
+                ))}
+              </Select>
+            </Col>
+
+            <Col xs={12} sm={6} md={3}>
+              <Select
+                value={section}
+                onChange={(v) => {
+                  setSection(v);
+                  setPage(1);
+                }}
+                style={{ width: '100%' }}
+                placeholder="Section"
+              >
+                <Select.Option value="all">All Secs</Select.Option>
+                {availableSections.map((s) => (
+                  <Select.Option key={s} value={s}>Sec {s}</Select.Option>
+                ))}
+              </Select>
+            </Col>
+
+            <Col xs={12} sm={6} md={3}>
+              <Select
+                value={status}
+                onChange={(v) => {
+                  setStatus(v);
+                  setPage(1);
+                }}
+                style={{ width: '100%' }}
+              >
+                <Select.Option value="all">All Status</Select.Option>
+                <Select.Option value="active">Active</Select.Option>
+                <Select.Option value="inactive">Inactive</Select.Option>
+              </Select>
+            </Col>
+
+            <Col xs={24} sm={12} md={4} style={{ display: 'flex', gap: 8 }}>
+              <Button
+                type="primary"
+                onClick={handleApplyFilters}
+                style={{
+                  flex: 1,
+                  height: 36,
+                  borderRadius: 8,
+                  background: 'linear-gradient(135deg,#6366f1,#8b5cf6)',
+                  border: 'none',
+                  fontWeight: 600,
+                }}
+              >
+                Filter
+              </Button>
+              <Button
+                onClick={handleResetFilters}
+                style={{
+                  height: 36,
+                  borderRadius: 8,
+                  background: 'rgba(255,255,255,0.06)',
+                  borderColor: 'rgba(255,255,255,0.12)',
+                  color: 'rgba(255,255,255,0.8)',
+                }}
+              >
+                Reset
+              </Button>
+            </Col>
+          </Row>
+        </Card>
+
+        {/* Compact Table with Standalone Server-Side Pagination */}
         <Card
           style={{
             background: 'rgba(255,255,255,0.04)',
             border: '1px solid rgba(255,255,255,0.08)',
-            borderRadius: 16,
+            borderRadius: 14,
+            overflow: 'hidden',
           }}
           styles={{ body: { padding: 0 } }}
         >
           <Table
-            dataSource={filtered}
+            dataSource={students}
             columns={columns}
             rowKey="id"
             loading={loading}
-            pagination={{ pageSize: 20, showSizeChanger: false }}
-            locale={{ emptyText: 'No students yet. Import an Excel / CSV file or manually add one.' }}
+            size="small"
+            pagination={false}
+            locale={{ emptyText: 'No students found matching current filters.' }}
           />
+
+          {/* Dedicated Server-Side Pagination Bar */}
+          <div
+            style={{
+              display: 'flex',
+              justifyContent: 'space-between',
+              alignItems: 'center',
+              padding: '8px 16px',
+              borderTop: '1px solid rgba(255,255,255,0.06)',
+              flexWrap: 'wrap',
+              gap: 10,
+              background: 'rgba(255,255,255,0.015)',
+            }}
+          >
+            <Text type="secondary" style={{ fontSize: 12 }}>
+              {total > 0
+                ? `Showing ${(page - 1) * pageSize + 1}–${Math.min(page * pageSize, total)} of ${total} students`
+                : '0 students'}
+            </Text>
+
+            <Pagination
+              size="small"
+              current={page}
+              pageSize={pageSize}
+              total={total}
+              showSizeChanger
+              pageSizeOptions={['10', '20', '50', '100']}
+              onChange={handlePageChange}
+            />
+          </div>
         </Card>
 
         {/* Manual Add Student Modal */}

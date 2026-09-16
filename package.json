@@ -9,7 +9,14 @@
     "lint": "eslint"
   },
   "dependencies": {
+    "@ant-design/icons": "^6.3.4",
+    "@supabase/ssr": "^0.12.7",
+    "@supabase/supabase-js": "^2.116.0",
+    "antd": "^6.6.4",
+    "dayjs": "^1.11.23",
     "next": "16.3.5",
+    "otpauth": "^9.5.2",
+    "papaparse": "^5.7.0",
     "react": "19.2.8",
     "react-dom": "19.2.8"
   },

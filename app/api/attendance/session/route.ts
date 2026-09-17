@@ -19,6 +19,47 @@ export async function GET(request: NextRequest) {
   if (!student) return NextResponse.json({ session: null, already_attended: false });
   if (student.status !== 'active') return NextResponse.json({ session: null, already_attended: false });
 
+  const reqSessionId = request.nextUrl.searchParams.get('session_id');
+
+  // If a specific session_id is requested, prioritize checking that session
+  if (reqSessionId) {
+    const { data: specificSession } = await admin
+      .from('attendance_sessions')
+      .select('*, class:classes(*)')
+      .eq('id', reqSessionId)
+      .maybeSingle();
+
+    if (specificSession && specificSession.status === 'open') {
+      const { data: assignment } = await admin
+        .from('class_students')
+        .select('id')
+        .eq('class_id', specificSession.class_id)
+        .eq('student_id', student.id)
+        .maybeSingle();
+
+      if (assignment) {
+        const { data: existing } = await admin
+          .from('attendance')
+          .select('id, marked_at')
+          .eq('session_id', specificSession.id)
+          .eq('student_id', student.id)
+          .maybeSingle();
+
+        return NextResponse.json({
+          session: {
+            id: specificSession.id,
+            class_id: specificSession.class_id,
+            status: specificSession.status,
+            started_at: specificSession.started_at,
+            class: specificSession.class,
+          },
+          already_attended: !!existing,
+          attendance: existing ?? null,
+        });
+      }
+    }
+  }
+
   // Find open sessions where this student is assigned
   const { data: openSessions } = await admin
     .from('attendance_sessions')

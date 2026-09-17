@@ -31,9 +31,25 @@ export async function POST(request: NextRequest) {
   }
 
   const admin = createAdminClient();
+  const normalizedCode = course_code.trim();
+
+  // Check if class with this course code already exists (case-insensitive)
+  const { data: existingClass } = await admin
+    .from('classes')
+    .select('id, course_code')
+    .ilike('course_code', normalizedCode)
+    .maybeSingle();
+
+  if (existingClass) {
+    return NextResponse.json(
+      { error: `A class with course code '${normalizedCode}' already exists.` },
+      { status: 409 },
+    );
+  }
+
   const { data, error } = await admin.from('classes').insert({
-    course_code,
-    name,
+    course_code: normalizedCode,
+    name: name.trim(),
     department: department || null,
     semester: semester || null,
     section: section || null,

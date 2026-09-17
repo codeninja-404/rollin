@@ -31,9 +31,10 @@ export default function AttendancePage() {
   const supabase = createClient();
   const realtimeRef = useRef<any>(null);
 
-  const loadState = useCallback(async () => {
+  const loadState = useCallback(async (targetSessionId?: string) => {
     try {
-      const res = await fetch('/api/attendance/session');
+      const url = targetSessionId ? `/api/attendance/session?session_id=${targetSessionId}` : '/api/attendance/session';
+      const res = await fetch(url);
       if (res.status === 401) {
         router.push('/login');
         return;
@@ -71,13 +72,14 @@ export default function AttendancePage() {
     };
   }, [loadState, supabase]);
 
-  const handleSubmit = async (overrideOtp?: string) => {
+  const handleSubmit = async (overrideOtp?: string, overrideSessionId?: string) => {
     const code = (overrideOtp || otp).trim();
     if (!code || code.length !== 6) {
       setError('Please enter or scan a valid 6-digit code.');
       return;
     }
-    if (!state?.session) return;
+    const targetSessionId = overrideSessionId || state?.session?.id;
+    if (!targetSessionId) return;
 
     setSubmitting(true);
     setError(null);
@@ -86,13 +88,13 @@ export default function AttendancePage() {
       const res = await fetch('/api/attendance/submit', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ session_id: state.session.id, otp: code }),
+        body: JSON.stringify({ session_id: targetSessionId, otp: code }),
       });
       const data = await res.json();
 
       if (res.ok) {
         setSuccess(true);
-        loadState(); // Refresh to show "already attended" state
+        loadState(targetSessionId); // Refresh to show "already attended" state for this session
       } else {
         setError(data.error ?? 'Submission failed. Please try again.');
       }
@@ -106,16 +108,14 @@ export default function AttendancePage() {
   const handleScanSuccess = async (data: { sessionId?: string; otp: string }) => {
     setScannerOpen(false);
 
-    if (!state?.session) return;
-
-    // If QR explicitly specifies a session_id, verify it matches
-    if (data.sessionId && data.sessionId !== state.session.id) {
-      setError('This QR code is for a different class session.');
+    const targetSessionId = data.sessionId || state?.session?.id;
+    if (!targetSessionId) {
+      setError('No active session found.');
       return;
     }
 
     setOtp(data.otp);
-    await handleSubmit(data.otp);
+    await handleSubmit(data.otp, targetSessionId);
   };
 
   const handleSignOut = async () => {
@@ -254,7 +254,7 @@ export default function AttendancePage() {
             <div>
               <Button
                 icon={<ReloadOutlined />}
-                onClick={loadState}
+                onClick={() => loadState()}
                 style={{
                   borderRadius: 0,
                   height: 38,

@@ -3,19 +3,19 @@
 import React, { useEffect, useState } from 'react';
 import {
   Card, Typography, Tag, Space,
-  Button, Drawer, List, Avatar,
+  Button, Drawer, Avatar, App, Spin,
 } from 'antd';
 import { EyeOutlined, FileExcelOutlined } from '@ant-design/icons';
 import type { AttendanceSession, Attendance } from '@/lib/types';
 import dayjs from 'dayjs';
 import * as XLSX from 'xlsx';
-import { message } from 'antd';
 import AntdConfigProvider from '@/components/AntdConfigProvider';
 import SharedTable from '@/components/SharedTable';
 
 const { Title, Text } = Typography;
 
 export default function HistoryPage() {
+  const { message } = App.useApp();
   const [sessions, setSessions] = useState<AttendanceSession[]>([]);
   const [loading, setLoading] = useState(true);
   const [selected, setSelected] = useState<AttendanceSession | null>(null);
@@ -331,26 +331,40 @@ export default function HistoryPage() {
               </Button>
             )}
           </div>
-          <List
-            loading={loadingDetail}
-            dataSource={sessionAttendance}
-            renderItem={(a) => (
-              <List.Item style={{ padding: '10px 0', borderBottom: '1px solid #E4E4E4' }}>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
-                  <Avatar size={30} style={{ background: '#2563EB', color: '#FFFFFF', borderRadius: 0, fontWeight: 600 }}>
-                    {(a.student as any)?.name?.charAt(0)}
-                  </Avatar>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ color: '#111111', fontWeight: 600, fontSize: 13 }}>{(a.student as any)?.name}</div>
-                    <Text type="secondary" style={{ fontSize: 11, color: '#6B6B6B' }}>{(a.student as any)?.student_code}</Text>
-                  </div>
-                  <Text type="secondary" style={{ fontSize: 11, color: '#6B6B6B' }}>
-                    {dayjs(a.marked_at).format('h:mm:ss A')}
-                  </Text>
+          {loadingDetail ? (
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <Spin />
+            </div>
+          ) : sessionAttendance.length === 0 ? (
+            <div style={{ textAlign: 'center', padding: '32px 0' }}>
+              <Text type="secondary" style={{ color: '#6B6B6B' }}>No student check-ins recorded for this session.</Text>
+            </div>
+          ) : (
+            sessionAttendance.map((a) => (
+              <div
+                key={a.id}
+                style={{
+                  padding: '10px 0',
+                  borderBottom: '1px solid #E4E4E4',
+                  display: 'flex',
+                  alignItems: 'center',
+                  gap: 12,
+                  width: '100%',
+                }}
+              >
+                <Avatar size={30} style={{ background: '#2563EB', color: '#FFFFFF', borderRadius: 0, fontWeight: 600 }}>
+                  {(a.student as any)?.name?.charAt(0)}
+                </Avatar>
+                <div style={{ flex: 1 }}>
+                  <div style={{ color: '#111111', fontWeight: 600, fontSize: 13 }}>{(a.student as any)?.name}</div>
+                  <Text type="secondary" style={{ fontSize: 11, color: '#6B6B6B' }}>{(a.student as any)?.student_code}</Text>
                 </div>
-              </List.Item>
-            )}
-          />
+                <Text type="secondary" style={{ fontSize: 11, color: '#6B6B6B' }}>
+                  {dayjs(a.marked_at).format('h:mm:ss A')}
+                </Text>
+              </div>
+            ))
+          )}
         </Drawer>
       </div>
     </AntdConfigProvider>

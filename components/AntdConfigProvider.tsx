@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect } from 'react';
-import { ConfigProvider, theme, Spin } from 'antd';
+import { ConfigProvider, theme, Spin, App } from 'antd';
 import { OrbitalSpinner } from '@/components/StylishLoader';
 
 // Set global default indicator for any Spin / Table loading in Ant Design
@@ -129,7 +129,9 @@ export default function AntdConfigProvider({ children }: { children: React.React
         },
       }}
     >
-      {children}
+      <App style={{ minHeight: '100%', width: '100%' }}>
+        {children}
+      </App>
     </ConfigProvider>
   );
 }

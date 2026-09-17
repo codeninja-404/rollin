@@ -2,8 +2,8 @@
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
-  Card, Typography, Button, Progress, Avatar, Tag, List,
-  Modal, message, Spin, Empty, Badge, Statistic, Row, Col, Space, Select, QRCode,
+  Card, Typography, Button, Progress, Avatar, Tag,
+  Modal, Spin, Empty, Badge, Statistic, Row, Col, Space, Select, QRCode, App,
 } from 'antd';
 import {
   ArrowLeftOutlined, CloseCircleOutlined, ReloadOutlined,
@@ -20,6 +20,7 @@ import StylishLoader from '@/components/StylishLoader';
 const { Title, Text } = Typography;
 
 export default function SessionOtpPage({ params }: { params: Promise<{ id: string }> }) {
+  const { message } = App.useApp();
   const [sessionId, setSessionId] = useState('');
   const [session, setSession] = useState<AttendanceSession | null>(null);
   const [otp, setOtp] = useState('');
@@ -518,38 +519,48 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
 
               {/* Student list */}
               <div style={{ maxHeight: 380, overflowY: 'auto' }}>
-                <List
-                  dataSource={attendance}
-                  locale={{ emptyText: <Text type="secondary">Waiting for students…</Text> }}
-                  renderItem={(record) => (
-                    <List.Item style={{ padding: '10px 0', borderBottom: '1px solid #E4E4E4' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: 12, width: '100%' }}>
-                        <Avatar
-                          size={32}
-                          style={{ background: '#2563EB', borderRadius: 0, flexShrink: 0 }}
-                        >
-                          {(record.student as any)?.name?.charAt(0) ?? '?'}
-                        </Avatar>
-                        <div style={{ flex: 1 }}>
-                          <div style={{ color: '#111111', fontWeight: 600, fontSize: 14 }}>
-                            {(record.student as any)?.name ?? 'Unknown'}
-                          </div>
+                {attendance.length === 0 ? (
+                  <div style={{ textAlign: 'center', padding: '32px 0' }}>
+                    <Text type="secondary">Waiting for students…</Text>
+                  </div>
+                ) : (
+                  attendance.map((record) => (
+                    <div
+                      key={record.id}
+                      style={{
+                        padding: '10px 0',
+                        borderBottom: '1px solid #E4E4E4',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: 12,
+                        width: '100%',
+                      }}
+                    >
+                      <Avatar
+                        size={32}
+                        style={{ background: '#2563EB', borderRadius: 0, flexShrink: 0 }}
+                      >
+                        {(record.student as any)?.name?.charAt(0) ?? '?'}
+                      </Avatar>
+                      <div style={{ flex: 1 }}>
+                        <div style={{ color: '#111111', fontWeight: 600, fontSize: 14 }}>
+                          {(record.student as any)?.name ?? 'Unknown'}
+                        </div>
+                        <Text type="secondary" style={{ fontSize: 11 }}>
+                          {(record.student as any)?.student_code}
+                        </Text>
+                      </div>
+                      <div style={{ textAlign: 'right' }}>
+                        <CheckCircleOutlined style={{ color: '#16A34A', fontSize: 16 }} />
+                        <div>
                           <Text type="secondary" style={{ fontSize: 11 }}>
-                            {(record.student as any)?.student_code}
+                            {dayjs(record.marked_at).format('h:mm:ss A')}
                           </Text>
                         </div>
-                        <div style={{ textAlign: 'right' }}>
-                          <CheckCircleOutlined style={{ color: '#16A34A', fontSize: 16 }} />
-                          <div>
-                            <Text type="secondary" style={{ fontSize: 11 }}>
-                              {dayjs(record.marked_at).format('h:mm:ss A')}
-                            </Text>
-                          </div>
-                        </div>
                       </div>
-                    </List.Item>
-                  )}
-                />
+                    </div>
+                  ))
+                )}
               </div>
             </Card>
           </Col>

@@ -1,7 +1,7 @@
 'use client';
 
 import React, { useEffect, useState, useCallback, useRef } from 'react';
-import { Typography, Badge, Button, Spin, Tag, message } from 'antd';
+import { Typography, Badge, Button, Spin, Tag, message, QRCode } from 'antd';
 import {
   FullscreenOutlined,
   FullscreenExitOutlined,
@@ -237,6 +237,7 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
 
   const isClosed = session.status === 'closed';
   const formattedOtp = otp ? `${otp.slice(0, 3)} ${otp.slice(3)}` : '··· ···';
+  const qrPayload = otp && sessionId ? JSON.stringify({ session_id: sessionId, otp }) : '';
   const isUrgent = secondsLeft <= 1;
 
   return (
@@ -372,32 +373,36 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
                 letterSpacing: 2,
                 textTransform: 'uppercase',
                 fontWeight: 600,
-                marginBottom: 16,
+                marginBottom: 20,
               }}>
-                Enter One-Time Verification Code
+                Scan Dynamic Attendance QR Code
               </div>
 
-              {/* GIANT HIGH-VISIBILITY OTP */}
+              {/* DYNAMIC HIGH-VISIBILITY ROTATING QR CODE */}
               <div style={{
-                fontSize: 'clamp(72px, 12vw, 150px)',
-                fontWeight: 900,
-                fontFamily: 'ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace',
-                letterSpacing: 'clamp(12px, 2.5vw, 32px)',
-                lineHeight: 1,
-                color: '#111111',
-                padding: '24px 48px',
-                borderRadius: 0,
+                padding: 24,
                 background: '#FFFFFF',
                 border: '1px solid #E4E4E4',
+                borderRadius: 0,
+                display: 'inline-flex',
+                flexDirection: 'column',
+                alignItems: 'center',
+                justifyContent: 'center',
                 transition: 'all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
                 transform: isFlipping ? 'scale(0.96)' : 'scale(1)',
                 opacity: isFlipping ? 0.75 : 1,
               }}>
-                {formattedOtp}
+                <QRCode
+                  value={qrPayload || 'waiting-for-session'}
+                  size={320}
+                  bordered={false}
+                  errorLevel="L"
+                  status={!otp ? 'loading' : 'active'}
+                />
               </div>
 
               {/* Progress Countdown Bar */}
-              <div style={{ width: 'min(90vw, 680px)', marginTop: 36 }}>
+              <div style={{ width: 'min(90vw, 480px)', marginTop: 28 }}>
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -406,7 +411,7 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
                   fontSize: 15,
                 }}>
                   <span style={{ color: '#6B6B6B', fontWeight: 500 }}>
-                    Rotating in ({otpPeriod}s cycle)
+                    Rotating QR ({otpPeriod}s cycle)
                   </span>
                   <span style={{
                     color: isUrgent ? '#DC2626' : '#2563EB',
@@ -433,6 +438,31 @@ export default function PresentSessionPage({ params }: { params: Promise<{ id: s
                     transition: 'width 0.08s linear',
                   }} />
                 </div>
+              </div>
+
+              {/* Backup Code Display for Manual Fallback */}
+              <div style={{
+                marginTop: 20,
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 12,
+                background: '#FFFFFF',
+                border: '1px solid #E4E4E4',
+                padding: '8px 20px',
+                borderRadius: 0,
+              }}>
+                <span style={{ color: '#6B6B6B', fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>
+                  Backup Code:
+                </span>
+                <span style={{
+                  fontFamily: 'monospace',
+                  fontWeight: 800,
+                  fontSize: 20,
+                  letterSpacing: 4,
+                  color: '#111111',
+                }}>
+                  {formattedOtp}
+                </span>
               </div>
             </>
           ) : (

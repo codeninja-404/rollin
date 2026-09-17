@@ -3,7 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from 'react';
 import {
   Card, Typography, Button, Progress, Avatar, Tag, List,
-  Modal, message, Spin, Empty, Badge, Statistic, Row, Col, Space, Select,
+  Modal, message, Spin, Empty, Badge, Statistic, Row, Col, Space, Select, QRCode,
 } from 'antd';
 import {
   ArrowLeftOutlined, CloseCircleOutlined, ReloadOutlined,
@@ -250,6 +250,7 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
 
   // Format OTP with space in middle for readability
   const formattedOtp = otp ? `${otp.slice(0, 3)} ${otp.slice(3)}` : '···  ···';
+  const qrPayload = otp && sessionId ? JSON.stringify({ session_id: sessionId, otp }) : '';
 
   return (
     <AntdConfigProvider>
@@ -313,26 +314,55 @@ export default function SessionOtpPage({ params }: { params: Promise<{ id: strin
               </div>
 
               {/* OTP */}
+              {/* Dynamic Rotating QR Code */}
               {!isClosed && (
                 <>
                   <div style={{
-                    fontSize: 'clamp(44px, 8vw, 72px)',
-                    fontWeight: 800,
-                    color: '#111111',
-                    letterSpacing: 'clamp(6px, 1.5vw, 12px)',
-                    fontFamily: 'monospace',
-                    lineHeight: 1,
-                    marginBottom: 16,
+                    padding: 16,
+                    background: '#FFFFFF',
+                    border: '1px solid #E4E4E4',
+                    borderRadius: 0,
+                    display: 'inline-flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    marginBottom: 18,
                     transition: 'all 0.22s cubic-bezier(0.34, 1.56, 0.64, 1)',
                     transform: isFlipping ? 'scale(0.96)' : 'scale(1)',
                     opacity: isFlipping ? 0.75 : 1,
                   }}>
-                    {formattedOtp}
+                    <QRCode
+                      value={qrPayload || 'waiting-for-session'}
+                      size={220}
+                      bordered={false}
+                      errorLevel="L"
+                      status={!otp ? 'loading' : 'active'}
+                    />
                   </div>
 
-                  <div style={{ marginBottom: 16 }}>
-                    <Text type="secondary" style={{ fontSize: 14 }}>
-                      Changes in{' '}
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: 8,
+                    marginBottom: 12,
+                  }}>
+                    <Text type="secondary" style={{ fontSize: 13, textTransform: 'uppercase', letterSpacing: 1, fontWeight: 600 }}>
+                      Code:
+                    </Text>
+                    <Text style={{
+                      fontFamily: 'monospace',
+                      fontWeight: 800,
+                      fontSize: 18,
+                      letterSpacing: 3,
+                      color: '#111111',
+                    }}>
+                      {formattedOtp}
+                    </Text>
+                  </div>
+
+                  <div style={{ marginBottom: 14 }}>
+                    <Text type="secondary" style={{ fontSize: 13 }}>
+                      Rotates in{' '}
                       <Text style={{ color: secondsLeft <= 2 ? '#DC2626' : '#2563EB', fontWeight: 700 }}>
                         {secondsLeft}s
                       </Text>

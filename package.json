@@ -15,6 +15,7 @@
     "@supabase/supabase-js": "^2.116.0",
     "antd": "^6.6.4",
     "dayjs": "^1.11.23",
+    "html5-qrcode": "^2.3.8",
     "next": "16.3.5",
     "otpauth": "^9.5.2",
     "papaparse": "^5.7.0",
